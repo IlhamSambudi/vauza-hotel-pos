@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Confirmation Letter</title>
+  <link rel="stylesheet" href="../styles/cl.css" />
+</head>
+<body>
+
+  <!-- HEADER -->
+  <div class="header">
+    <h1>CONFIRMATION LETTER</h1>
+  </div>
+
+  <!-- INFO -->
+  <table class="info-table">
+    <tr>
+      <td><strong>Date</strong></td>
+      <td>{{date}}</td>
+    </tr>
+    <tr>
+      <td><strong>Client Name</strong></td>
+      <td>{{client}}</td>
+    </tr>
+    <tr>
+      <td><strong>Reservation No</strong></td>
+      <td>{{reservation_no}}</td>
+    </tr>
+  </table>
+
+  <!-- HOTEL INFO -->
+  <table class="info-table">
+    <tr>
+      <td><strong>Hotel</strong></td>
+      <td>{{hotel}}</td>
+    </tr>
+    <tr>
+      <td><strong>Check In</strong></td>
+      <td>{{checkin}}</td>
+    </tr>
+    <tr>
+      <td><strong>Check Out</strong></td>
+      <td>{{checkout}}</td>
+    </tr>
+    <tr>
+      <td><strong>Nights</strong></td>
+      <td>{{nights}}</td>
+    </tr>
+  </table>
+
+  <!-- ROOM DETAILS -->
+  <h3>Room Details</h3>
+  <table class="bordered">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Qty</th>
+        <th>Rate</th>
+        <th>Total</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{rooms}}
+    </tbody>
+  </table>
+
+  <!-- SUMMARY -->
+  <table class="summary-table">
+    <tr>
+      <td>Subtotal</td>
+      <td>{{subtotal}}</td>
+    </tr>
+    <tr>
+      <td>VAT</td>
+      <td>{{vat}}</td>
+    </tr>
+    <tr class="total">
+      <td>Total</td>
+      <td>{{total}}</td>
+    </tr>
+    <tr>
+      <td>Paid</td>
+      <td>{{paid}}</td>
+    </tr>
+    <tr>
+      <td>Balance</td>
+      <td>{{balance}}</td>
+    </tr>
+  </table>
+
+  <!-- TERMS -->
+  <div class="terms">
+    <h4>Terms & Conditions</h4>
+    <p>
+      This confirmation letter is issued based on availability and subject to hotel policy.
+      Any amendment or cancellation will follow the agreed terms.
+    </p>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    PT Vauza Tamma Abadi
+  </div>
+
+</body>
+</html>

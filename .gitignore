@@ -1,0 +1,17 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Environment
+.env
+
+# Secrets
+vauza-hotel-backend/credentials/google-service-account.json
+**/credentials/*.json
+**/*.pem
+**/*.key
+
+# Build
+dist/
+build/
+.DS_Store
