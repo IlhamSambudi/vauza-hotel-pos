@@ -9,6 +9,6 @@
     textarea,
     select,
     button {
-        font-family: 'Montserrat', sans-serif;
+        /* font-family: 'Archivo', sans-serif; handled by tailwind */
     }
 }

@@ -38,7 +38,7 @@ export default function ConfirmationLetter() {
                     </button>
                 </div>
                 <div className="flex justify-between items-center mb-8">
-                    <h1 className="text-2xl font-black tracking-widest leading-none text-primary flex flex-col">
+                    <h1 className="text-2xl font-black tracking-widest leading-none text-green-700 flex flex-col">
                         <strong><span>CONFIRMATION</span></strong>
                         <strong><span>LETTER</span></strong>
                     </h1>

@@ -3,69 +3,73 @@ import authService from '../services/auth.service';
 import DashboardLayout from '../layouts/DashboardLayout';
 import api from '../services/api';
 import { formatDate } from '../utils/formatDate';
+import { Users, Building, CalendarDays, Wallet, BadgeCheck, Eye, EyeOff } from 'lucide-react';
 
-// Sub-components defined outside to prevent re-creation on every render
-const StatCard = ({ title, value, icon, isCurrency, colorClass = "text-primary" }) => (
-    <div className="bg-neu p-6 rounded-2xl shadow-neu-flat hover:shadow-neu-button transition-all group">
-        <h3 className="text-textSub font-bold mb-3 uppercase text-[10px] tracking-widest">{title}</h3>
-        <div className="flex items-end justify-between">
-            <span className={`text-2xl font-black transition-colors ${colorClass} tracking-tight`}>
-                {isCurrency ? `Rp ${value.toLocaleString()}` : value}
-            </span>
-            <div className={`text-2xl opacity-40 group-hover:opacity-100 transition-opacity ${colorClass} drop-shadow-sm`}>
-                {icon}
+const StatCard = ({ title, value, icon: Icon, isCurrency, colorClass = "text-textMain" }) => (
+    <div className="bg-white p-6 rounded-card shadow-card hover:shadow-lg transition-all duration-300 border border-gray-100 group">
+        <div className="flex justify-between items-start mb-4">
+            <h3 className="text-textSub font-bold text-xs uppercase tracking-wider">{title}</h3>
+            <div className={`p-2 rounded-lg bg-gray-50 text-textSub group-hover:bg-primary/10 group-hover:text-primary transition-colors`}>
+                <Icon size={20} />
             </div>
+        </div>
+        <div>
+            <span className={`text-3xl font-bold tracking-tight text-textMain`}>
+                {isCurrency ? (
+                    <span className="flex items-baseline gap-1">
+                        <span className="text-lg text-textSub font-medium">{value.toString().split(/[0-9]/)[0]}</span>
+                        {value.toLocaleString()}
+                    </span>
+                ) : value}
+            </span>
         </div>
     </div>
 );
 
 const StatusBadge = ({ status }) => {
-    if (status === 'new') return <span className="shadow-neu-pressed px-3 py-1 rounded-full text-[10px] font-extrabold text-green-600 uppercase tracking-widest">NEW</span>;
-    if (status === 'edited') return <span className="shadow-neu-pressed px-3 py-1 rounded-full text-[10px] font-extrabold text-blue-500 uppercase tracking-widest">EDITED</span>;
-    if (status === 'delete') return <span className="shadow-neu-pressed px-3 py-1 rounded-full text-[10px] font-extrabold text-red-500 uppercase tracking-widest">DELETED</span>;
+    if (status === 'new') return <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-success/10 text-success uppercase tracking-wide">NEW</span>;
+    if (status === 'edited') return <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-secondary/10 text-secondary uppercase tracking-wide">EDITED</span>;
+    if (status === 'delete') return <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-danger/10 text-danger uppercase tracking-wide">DELETED</span>;
     return null;
 };
 
 const RecentTable = ({ title, data = [], headers, renderRow, hasStatusToggle, showDeleted, onToggleDelete }) => {
-    // Safety check for data
     const safeData = Array.isArray(data) ? data : [];
     const filteredData = showDeleted ? safeData : safeData.filter(item => item.tag_status !== 'delete');
 
     return (
-        <div className="bg-neu rounded-2xl p-6 shadow-neu-flat flex-1 min-w-[300px]">
-            <h3 className="text-lg font-black text-textMain mb-6 tracking-tight flex justify-between items-center">
-                {title}
+        <div className="bg-white rounded-card p-6 shadow-card border border-gray-100 flex-1 min-w-[300px]">
+            <div className="flex justify-between items-center mb-6">
+                <h3 className="text-lg font-bold text-textMain tracking-tight">
+                    {title}
+                </h3>
                 {hasStatusToggle && (
                     <button
                         onClick={onToggleDelete}
-                        className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${showDeleted ? 'shadow-neu-pressed text-primary' : 'shadow-neu-flat text-gray-400 hover:text-primary'}`}
+                        className={`p-2 rounded-lg transition-all ${showDeleted ? 'bg-primary/10 text-primary' : 'text-textSub hover:bg-gray-50'}`}
                         title={showDeleted ? "Hide Deleted" : "Show Deleted"}
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        </svg>
+                        {showDeleted ? <Eye size={16} /> : <EyeOff size={16} />}
                     </button>
                 )}
-            </h3>
-            <div className="overflow-x-auto rounded-xl">
+            </div>
+            <div className="overflow-x-auto">
                 <table className="w-full text-sm text-left border-collapse">
-                    <thead className="text-textSub">
-                        <tr>
+                    <thead>
+                        <tr className="border-b border-gray-100">
                             {headers.map((h, i) => (
-                                <th key={i} className="p-4 font-bold uppercase text-[10px] tracking-wider opacity-70">
-                                    {h === 'Status' ? '' : h} {/* Hide Status Label since button is in header */}
+                                <th key={i} className="py-3 px-4 font-bold text-xs uppercase text-textSub tracking-wider">
+                                    {h === 'Status' ? '' : h}
                                 </th>
                             ))}
-                            {/* Add a header for actions if needed */}
-                            {title === "Recent Reservations" && <th className="p-4 font-bold uppercase text-[10px] tracking-wider opacity-70"></th>}
+                            {title === "Recent Reservations" && <th className="py-3 px-4"></th>}
                         </tr>
                     </thead>
-                    <tbody className="space-y-2">
+                    <tbody>
                         {filteredData.map((item, i) => renderRow(item, i))}
                         {filteredData.length === 0 && (
                             <tr>
-                                <td colSpan={headers.length + (title === "Recent Reservations" ? 1 : 0)} className="p-6 text-center text-textSub italic font-medium opacity-50">No data found.</td>
+                                <td colSpan={headers.length + (title === "Recent Reservations" ? 1 : 0)} className="py-8 text-center text-textSub text-sm">No data found.</td>
                             </tr>
                         )}
                     </tbody>
@@ -77,19 +81,15 @@ const RecentTable = ({ title, data = [], headers, renderRow, hasStatusToggle, sh
 
 const Dashboard = () => {
     const user = authService.getCurrentUser();
-    const [currency, setCurrency] = useState('IDR'); // 'IDR' or 'SAR'
+    const [currency, setCurrency] = useState('IDR');
 
     const [stats, setStats] = useState({
-        clients: 0, hotels: 0, reservations: 0, revenue: 0, revenueSar: 0, // Added revenueSar
+        clients: 0, hotels: 0, reservations: 0, revenue: 0, revenueSar: 0,
         tagNew: 0, tagEdited: 0, tagDeleted: 0
     });
 
-    // Recent Data States
     const [recents, setRecents] = useState({
-        clients: [],
-        hotels: [],
-        reservations: [],
-        payments: []
+        clients: [], hotels: [], reservations: [], payments: []
     });
 
     const [showDeleted, setShowDeleted] = useState(false);
@@ -109,12 +109,10 @@ const Dashboard = () => {
                 const reservations = r.data || [];
                 const payments = p.data || [];
 
-                // Calculate Revenue (Exclude Deleted)
                 const activePayments = payments.filter(p => p.tag_status !== 'delete');
                 const totalRevenue = activePayments.reduce((sum, pay) => sum + (Number(pay.amount) || 0), 0);
-                const totalRevenueSar = activePayments.reduce((sum, pay) => sum + (Number(pay.amount_sar) || 0), 0); // Sum SAR
+                const totalRevenueSar = activePayments.reduce((sum, pay) => sum + (Number(pay.amount_sar) || 0), 0);
 
-                // Calculate Tag Stats
                 const allData = [...clients, ...hotels, ...reservations, ...payments];
                 const countTag = (tag) => allData.filter(item => item.tag_status === tag).length;
 
@@ -129,9 +127,7 @@ const Dashboard = () => {
                     tagDeleted: countTag('delete')
                 });
 
-                // Get Recent 5
                 const getRecent = (arr) => arr.slice(-5).reverse();
-
                 setRecents({
                     clients: getRecent(clients),
                     hotels: getRecent(hotels),
@@ -151,46 +147,44 @@ const Dashboard = () => {
     };
 
     return (
-        <DashboardLayout title="Dashboard">
-            <div className="mb-10">
-                <div className="bg-neu rounded-2xl p-8 flex items-center justify-between shadow-neu-flat">
-                    <div>
-                        <h2 className="text-2xl font-black text-textMain tracking-tight">Welcome back, <span className="text-primary">{user?.username}</span>!</h2>
-                        <p className="text-textSub font-medium mt-2">Manage your property with style.</p>
+        <DashboardLayout title="Overview">
+            {/* WELCOME CARD */}
+            <div className="bg-white rounded-card p-6 shadow-card border border-gray-100 mb-8 flex flex-col md:flex-row items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xl">
+                        {user?.username?.charAt(0).toUpperCase()}
                     </div>
-                    {/* Currency Toggle */}
-                    <button
-                        onClick={toggleCurrency}
-                        className={`flex items-center gap-3 px-5 py-3 rounded-xl transition-all font-bold text-sm tracking-wide text-textMain
-                            ${currency === 'IDR' ? 'shadow-neu-flat' : 'shadow-neu-pressed text-primary'}
-                        `}
-                        title="Switch Currency Overview"
-                    >
-                        <span>{currency === 'IDR' ? '🇮🇩 IDR' : '🇸🇦 SAR'}</span>
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" />
-                        </svg>
-                    </button>
+                    <div>
+                        <h2 className="text-lg font-bold text-textMain">Welcome back, {user?.username}</h2>
+                        <p className="text-sm text-textSub">Here's what's happening today.</p>
+                    </div>
                 </div>
+                <button
+                    onClick={toggleCurrency}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all text-sm font-bold border ${currency === 'IDR' ? 'border-gray-200 text-textSub hover:border-primary hover:text-primary' : 'bg-primary text-white border-primary shadow-lg'}`}
+                >
+                    <Wallet size={16} />
+                    <span>{currency} Currency</span>
+                </button>
             </div>
 
-            {/* MAIN STATS */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-10">
-                <StatCard title="Total Clients" value={stats.clients} icon="👥" />
-                <StatCard title="Partner Hotels" value={stats.hotels} icon="🏨" />
-                <StatCard title="Active Reservations" value={stats.reservations} icon="📅" />
+            {/* STATS GRID */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <StatCard title="Total Clients" value={stats.clients} icon={Users} colorClass="text-blue-600" />
+                <StatCard title="Partner Hotels" value={stats.hotels} icon={Building} colorClass="text-orange-600" />
+                <StatCard title="Active Reservations" value={stats.reservations} icon={CalendarDays} colorClass="text-purple-600" />
                 <StatCard
                     title={`Total Revenue (${currency})`}
                     value={currency === 'IDR' ? stats.revenue : stats.revenueSar}
-                    icon={currency === 'IDR' ? "💰" : "💱"}
+                    icon={BadgeCheck}
                     isCurrency
+                    colorClass="text-green-600"
                 />
             </div>
 
-            {/* RECENT DATA TABLES GRID */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-
-                {/* 1. RECENT CLIENTS */}
+            {/* RECENT TABLES */}
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+                {/* CLIENTS */}
                 <RecentTable
                     title="Recent Clients"
                     data={recents.clients}
@@ -199,14 +193,14 @@ const Dashboard = () => {
                     showDeleted={showDeleted}
                     onToggleDelete={() => setShowDeleted(!showDeleted)}
                     renderRow={(c) => (
-                        <tr key={c.id_client} className={`transition-all ${c.tag_status === 'delete' ? 'opacity-50' : 'hover:scale-[1.01]'}`}>
-                            <td className="p-4 font-bold text-textMain border-b border-transparent">{c.nama_client}</td>
-                            <td className="p-4 text-right border-b border-transparent"><StatusBadge status={c.tag_status} /></td>
+                        <tr key={c.id_client} className={`hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-0 ${c.tag_status === 'delete' ? 'opacity-50 grayscale' : ''}`}>
+                            <td className="p-4 font-bold text-textMain">{c.nama_client}</td>
+                            <td className="p-4 text-right"><StatusBadge status={c.tag_status} /></td>
                         </tr>
                     )}
                 />
 
-                {/* 2. RECENT HOTELS */}
+                {/* HOTELS */}
                 <RecentTable
                     title="Recent Hotels"
                     data={recents.hotels}
@@ -215,15 +209,15 @@ const Dashboard = () => {
                     showDeleted={showDeleted}
                     onToggleDelete={() => setShowDeleted(!showDeleted)}
                     renderRow={(h) => (
-                        <tr key={h.id_hotel} className={`transition-all ${h.tag_status === 'delete' ? 'opacity-50' : 'hover:scale-[1.01]'}`}>
-                            <td className="p-4 font-bold text-textMain border-b border-transparent">{h.nama_hotel}</td>
-                            <td className="p-4 text-textSub text-xs font-semibold uppercase tracking-wide border-b border-transparent">{h.city}</td>
-                            <td className="p-4 text-right border-b border-transparent"><StatusBadge status={h.tag_status} /></td>
+                        <tr key={h.id_hotel} className={`hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-0 ${h.tag_status === 'delete' ? 'opacity-50 grayscale' : ''}`}>
+                            <td className="p-4 font-bold text-textMain">{h.nama_hotel}</td>
+                            <td className="p-4 text-textSub text-xs font-semibold uppercase">{h.city}</td>
+                            <td className="p-4 text-right"><StatusBadge status={h.tag_status} /></td>
                         </tr>
                     )}
                 />
 
-                {/* 3. RECENT RESERVATIONS */}
+                {/* RESERVATIONS */}
                 <RecentTable
                     title="Recent Reservations"
                     data={recents.reservations}
@@ -232,16 +226,16 @@ const Dashboard = () => {
                     showDeleted={showDeleted}
                     onToggleDelete={() => setShowDeleted(!showDeleted)}
                     renderRow={(r) => (
-                        <tr key={r.no_rsv} className={`transition-all ${r.tag_status === 'delete' ? 'opacity-50' : 'hover:scale-[1.01]'}`}>
-                            <td className="p-4 font-mono text-xs font-bold text-primary border-b border-transparent">{r.no_rsv}</td>
-                            <td className="p-4 font-bold text-textMain truncate max-w-[150px] border-b border-transparent">{r.nama_client}</td>
-                            <td className="p-4 text-textSub text-xs font-medium border-b border-transparent truncate max-w-[150px]">{r.nama_hotel}</td>
-                            <td className="p-4 text-right border-b border-transparent"><StatusBadge status={r.tag_status} /></td>
+                        <tr key={r.no_rsv} className={`hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-0 ${r.tag_status === 'delete' ? 'opacity-50 grayscale' : ''}`}>
+                            <td className="p-4 font-mono text-xs font-bold text-primary">{r.no_rsv}</td>
+                            <td className="p-4 font-bold text-textMain truncate max-w-[120px]">{r.nama_client}</td>
+                            <td className="p-4 text-textSub text-xs truncate max-w-[120px]">{r.nama_hotel}</td>
+                            <td className="p-4 text-right"><StatusBadge status={r.tag_status} /></td>
                         </tr>
                     )}
                 />
 
-                {/* 4. RECENT PAYMENTS */}
+                {/* PAYMENTS */}
                 <RecentTable
                     title="Recent Payments"
                     data={recents.payments}
@@ -250,20 +244,19 @@ const Dashboard = () => {
                     showDeleted={showDeleted}
                     onToggleDelete={() => setShowDeleted(!showDeleted)}
                     renderRow={(p) => (
-                        <tr key={p.id_payment} className={`transition-all ${p.tag_status === 'delete' ? 'opacity-50' : 'hover:scale-[1.01]'}`}>
-                            <td className="p-4 text-textSub text-xs font-bold border-b border-transparent">{formatDate(p.date)}</td>
-                            <td className="p-4 font-bold text-textMain truncate max-w-[150px] border-b border-transparent">{p.nama_client}</td>
-                            <td className="p-4 font-mono text-xs font-bold text-primary border-b border-transparent">
+                        <tr key={p.id_payment} className={`hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-0 ${p.tag_status === 'delete' ? 'opacity-50 grayscale' : ''}`}>
+                            <td className="p-4 text-textSub text-xs font-medium">{formatDate(p.date)}</td>
+                            <td className="p-4 font-bold text-textMain truncate max-w-[120px]">{p.nama_client}</td>
+                            <td className="p-4 font-mono text-xs font-bold text-textMain">
                                 {currency === 'IDR'
-                                    ? `Rp ${Number(p.amount).toLocaleString()}`
+                                    ? Number(p.amount).toLocaleString()
                                     : `${Number(p.amount_sar || 0).toLocaleString()} SAR`
                                 }
                             </td>
-                            <td className="p-4 text-right border-b border-transparent"><StatusBadge status={p.tag_status} /></td>
+                            <td className="p-4 text-right"><StatusBadge status={p.tag_status} /></td>
                         </tr>
                     )}
                 />
-
             </div>
         </DashboardLayout>
     );

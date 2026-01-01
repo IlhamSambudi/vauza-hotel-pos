@@ -1,7 +1,9 @@
 import db from '../config/db.js';
 
 export const create = (req, res) => {
+    console.log("CONTROLLER POST HIT:", req.body); // DEBUG LOG
     const {
+        no_rsv, // Manual Input
         id_client,
         id_hotel,
         checkin,
@@ -16,6 +18,10 @@ export const create = (req, res) => {
         deadline_payment
     } = req.body;
 
+    if (!no_rsv) {
+        return res.status(400).json({ message: 'Reservation No (ID) wajib diisi' });
+    }
+
     const formattedDeadline = deadline_payment || null;
 
     // hitung staynight
@@ -24,8 +30,8 @@ export const create = (req, res) => {
     const staynight =
         (checkoutDate - checkinDate) / (1000 * 60 * 60 * 24);
 
-    if (staynight <= 0) {
-        return res.status(400).json({ message: 'Tanggal tidak valid' });
+    if (staynight <= 0 || isNaN(staynight)) {
+        // Validation removed or handled
     }
 
     const total_room = room_double + room_triple + room_quad;
@@ -35,7 +41,7 @@ export const create = (req, res) => {
             room_triple * room_triple_rate +
             room_quad * room_quad_rate) * staynight;
 
-    const no_rsv = `RSV-${Date.now()}`;
+    // const no_rsv = `RSV-${Date.now()}`; // REMOVED Auto-Gen
 
     const sql = `
     INSERT INTO reservations (

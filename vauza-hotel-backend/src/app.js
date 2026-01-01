@@ -9,7 +9,7 @@ import cors from 'cors';
 import authRoutes from './routes/auth.routes.js';
 import clientRoutes from './routes/clients.js';
 import hotelRoutes from './routes/hotels.js';
-import reservationRoutes from './routes/reservations.js';
+import reservationRoutes from './routes/reservations_SIMPLE.js';
 import paymentRoutes from './routes/payments.js';
 import testSheetsRoutes from './routes/testSheets.js';
 

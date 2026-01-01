@@ -2,16 +2,26 @@ import { google } from "googleapis";
 import path from "path";
 import { fileURLToPath } from "url";
 import fs from "fs";
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const KEY_FILE_PATH = path.join(__dirname, "../../credentials/google-service-account.json");
+const CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
+const CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
+const REFRESH_TOKEN = process.env.GOOGLE_REFRESH_TOKEN;
+const REDIRECT_URI = 'https://developers.google.com/oauthplayground';
 
-const auth = new google.auth.GoogleAuth({
-    keyFile: KEY_FILE_PATH,
-    scopes: ["https://www.googleapis.com/auth/drive.file"],
-});
+if (!REFRESH_TOKEN) {
+    console.error("ERROR: GOOGLE_REFRESH_TOKEN is missing in environment variables!");
+} else {
+    console.log("Drive Service: Refresh Token loaded.");
+}
+
+const auth = new google.auth.OAuth2(CLIENT_ID, CLIENT_SECRET, REDIRECT_URI);
+auth.setCredentials({ refresh_token: REFRESH_TOKEN });
 
 const drive = google.drive({ version: "v3", auth });
 
@@ -20,11 +30,11 @@ const drive = google.drive({ version: "v3", auth });
  * @param {Object} fileObject Multer file object
  * @returns {Promise<string>} Web View Link
  */
-export async function uploadFile(fileObject) {
+export async function uploadFile(fileObject, customName = null) {
     try {
         const response = await drive.files.create({
             requestBody: {
-                name: `PAYMENT-${Date.now()}-${fileObject.originalname}`,
+                name: customName || `PAYMENT-${Date.now()}-${fileObject.originalname}`,
                 mimeType: fileObject.mimetype,
                 parents: ['1Ri4Lvt8-xa_p40UCWYK7BQK_HHFVrS7t'] // Upload to shared folder
             },
@@ -32,6 +42,7 @@ export async function uploadFile(fileObject) {
                 mimeType: fileObject.mimetype,
                 body: fs.createReadStream(fileObject.path),
             },
+            supportsAllDrives: true,
         });
 
         const fileId = response.data.id;

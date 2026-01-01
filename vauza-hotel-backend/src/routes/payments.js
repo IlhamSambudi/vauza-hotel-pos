@@ -78,19 +78,22 @@ router.get('/', async (req, res) => {
     }
 });
 
-// POST /payments - Create Payment & Upload Proof (Local)
+import { uploadFile } from '../../server/services/googleDrive.js';
+
+// ... (imports remain)
+
+// POST /payments - Create Payment & Upload Proof (Google Drive)
 router.post('/', upload.single('file'), async (req, res) => {
     try {
         const { id_client, amount, detail, date, exchange_rate } = req.body;
         const file = req.file;
 
         if (!id_client || !amount || !file) {
-            // Cleanup if validation fails
             if (file && fs.existsSync(file.path)) fs.unlinkSync(file.path);
             return res.status(400).json({ message: "Client, Amount, and File are required" });
         }
 
-        // 1. Fetch Client Name for Renaming
+        // 1. Fetch Client Name
         let clientName = "Unknown";
         try {
             const resClients = await sheets.spreadsheets.values.get({ spreadsheetId: SPREADSHEET_ID, range: "clients!A:C" });
@@ -103,8 +106,7 @@ router.post('/', upload.single('file'), async (req, res) => {
             console.error("Error fetching client name:", error);
         }
 
-        // 2. Rename File
-        // Format: dd-mm-yyyy_clientname.ext
+        // 2. Rename Local File (Temporary)
         const dateObj = date ? new Date(date) : new Date();
         const day = String(dateObj.getDate()).padStart(2, '0');
         const month = String(dateObj.getMonth() + 1).padStart(2, '0');
@@ -118,16 +120,29 @@ router.post('/', upload.single('file'), async (req, res) => {
 
         fs.renameSync(file.path, newPath);
 
-        // 3. Construct Local URL
-        const baseUrl = `${req.protocol}://${req.get('host')}`;
-        const fileUrl = `${baseUrl}/uploads/${newFilename}`;
+        // Update file object path for the drive service
+        file.path = newPath;
 
-        // 4. Calculations
+        // 3. Upload to Google Drive
+        let fileUrl = "";
+        try {
+            fileUrl = await uploadFile(file, newFilename);
+        } catch (uploadErr) {
+            console.error("Drive upload failed:", uploadErr);
+            throw new Error("Failed to upload to Google Drive");
+        }
+
+        // 4. Delete Local File (Cleanup)
+        if (fs.existsSync(newPath)) {
+            fs.unlinkSync(newPath);
+        }
+
+        // 5. Calculations
         const rate = Number(exchange_rate) || 1;
         const amt = Number(amount) || 0;
         const amount_sar = (rate > 0) ? (amt / rate).toFixed(2) : 0;
 
-        // 5. Save to Sheet
+        // 6. Save to Sheet
         const id_payment = "PAY-" + Date.now();
         const valueDate = date || new Date().toISOString().split('T')[0];
         const tag_status = 'new';
@@ -135,20 +150,20 @@ router.post('/', upload.single('file'), async (req, res) => {
 
         await sheets.spreadsheets.values.append({
             spreadsheetId: SPREADSHEET_ID,
-            range: "payments!A:J", // Updated range to include rate and sar
+            range: "payments!A:J",
             valueInputOption: "USER_ENTERED",
             requestBody: {
                 values: [[
                     id_payment,
                     id_client,
                     amount,
-                    detail || "", // Description
+                    detail || "",
                     valueDate,
-                    fileUrl,
-                    "", // Reservation Number (Col G) - Empty
-                    tag_status, // Col H
-                    rate,      // Col I - Exchange Rate
-                    amount_sar // Col J - Amount SAR
+                    fileUrl, // Drive Link
+                    "",
+                    tag_status,
+                    rate,
+                    amount_sar
                 ]]
             }
         });
@@ -157,10 +172,10 @@ router.post('/', upload.single('file'), async (req, res) => {
 
     } catch (err) {
         console.error("Error creating payment:", err);
-        // Clean up file if sheet save fails (check both old and new paths)
-        if (req.file) {
-            if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
-        }
+        // Clean up
+        if (req.file && fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+        const renamedPath = req.file ? path.join(path.dirname(req.file.path), `${Date.now()}`) : null; // Rough fallback, assume it might be renamed
+        // Actually, we rely on the logic inside try block to clean up newPath if it exists. 
         res.status(500).json({ message: "Failed to create payment" });
     }
 });

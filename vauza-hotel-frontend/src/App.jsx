@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useLocation } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
 import Sidebar from './components/Sidebar';
 import Routes from './Routes';
 
@@ -12,7 +13,8 @@ export default function App() {
   const showSidebar = !isLoginPage && !isCLPage;
 
   return (
-    <div className="flex min-h-screen bg-neu text-textMain font-sans">
+    <div className="flex min-h-screen bg-bgMain text-textMain font-sans">
+      <Toaster position="top-right" reverseOrder={false} />
       {showSidebar && isSidebarOpen && <Sidebar />}
 
       <main className={`flex-1 flex flex-col transition-all duration-300 ${!isLoginPage && !isCLPage ? 'h-screen overflow-y-auto' : ''}`}>
