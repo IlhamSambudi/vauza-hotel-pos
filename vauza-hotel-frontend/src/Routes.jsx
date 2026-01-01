@@ -6,6 +6,7 @@ import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
 import ConfirmationLetter from './pages/ConfirmationLetter';
 import Payments from './pages/Payments';
+import PaymentReceipt from './pages/PaymentReceipt';
 
 const ProtectedRoute = ({ children }) => {
     const token = localStorage.getItem('token');
@@ -26,6 +27,7 @@ export default function Routes() {
             <Route path="/reservations" element={<ProtectedRoute><Reservations /></ProtectedRoute>} />
             <Route path="/payments" element={<ProtectedRoute><Payments /></ProtectedRoute>} />
             <Route path="/cl/:no_rsv" element={<ProtectedRoute><ConfirmationLetter /></ProtectedRoute>} />
+            <Route path="/payment-receipt/:id_payment" element={<ProtectedRoute><PaymentReceipt /></ProtectedRoute>} />
 
             <Route path="*" element={<Navigate to="/" />} />
         </Switch>

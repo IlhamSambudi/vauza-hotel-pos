@@ -7,7 +7,60 @@ import path from 'path';
 import dotenv from 'dotenv';
 dotenv.config();
 
+console.log("!!! PAYMENTS.JS LOADED !!!");
+
 const router = express.Router();
+
+router.use((req, res, next) => {
+    console.log(`[PAYMENTS ROUTE DEBUG] Method: ${req.method}, Path: ${req.path}`);
+    next();
+});
+
+// GET /payments/ping - Connectivity Test
+router.get('/ping', (req, res) => res.json({ message: "PONG" }));
+
+// GET /payments/detail/:id - Get Single Payment Detail
+router.get('/detail/:id', async (req, res) => {
+    console.log(`GET /payments/${req.params.id} HIT`);
+    try {
+        const { id } = req.params;
+
+        // Fetch Payments
+        const resPay = await sheets.spreadsheets.values.get({ spreadsheetId: SPREADSHEET_ID, range: "payments!A:Z" });
+        const pRows = resPay.data.values || [];
+        const row = pRows.find(r => r[0] === id);
+
+        if (!row || row[7] === 'delete') {
+            console.log("Payment not found in sheet");
+            return res.status(404).json({ message: "Payment not found" });
+        }
+
+        // Fetch Client Name
+        const resClients = await sheets.spreadsheets.values.get({ spreadsheetId: SPREADSHEET_ID, range: "clients!A:C" });
+        const cRows = resClients.data.values || [];
+        const clientRow = cRows.find(c => c[0] && c[0].toString().trim() === row[1]?.toString().trim());
+        const clientName = clientRow ? clientRow[1] : "Unknown";
+
+        const payment = {
+            id_payment: row[0],
+            id_client: row[1],
+            nama_client: clientName,
+            amount: row[2],
+            detail: row[3],
+            date: row[4],
+            file_url: row[5],
+            no_rsv: row[6],
+            tag_status: row[7],
+            exchange_rate: row[8] || 1,
+            amount_sar: row[9] || 0
+        };
+
+        res.json(payment);
+    } catch (err) {
+        console.error("Error fetching payment:", err);
+        res.status(500).json({ message: "Failed to fetch payment" });
+    }
+});
 
 // Local Storage Setup
 const storage = multer.diskStorage({
@@ -75,6 +128,45 @@ router.get('/', async (req, res) => {
     } catch (err) {
         console.error("Error fetching payments:", err);
         res.status(500).json({ message: "Failed to fetch payments" });
+    }
+});
+
+// GET /payments/:id - Get Single Payment Detail
+router.get('/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        // Fetch Payments
+        const resPay = await sheets.spreadsheets.values.get({ spreadsheetId: SPREADSHEET_ID, range: "payments!A:Z" });
+        const pRows = resPay.data.values || [];
+        const row = pRows.find(r => r[0] === id);
+
+        if (!row || row[7] === 'delete') return res.status(404).json({ message: "Payment not found" });
+
+        // Fetch Client Name
+        const resClients = await sheets.spreadsheets.values.get({ spreadsheetId: SPREADSHEET_ID, range: "clients!A:C" });
+        const cRows = resClients.data.values || [];
+        const clientRow = cRows.find(c => c[0] && c[0].toString().trim() === row[1]?.toString().trim());
+        const clientName = clientRow ? clientRow[1] : "Unknown";
+
+        const payment = {
+            id_payment: row[0],
+            id_client: row[1],
+            nama_client: clientName,
+            amount: row[2],
+            detail: row[3],
+            date: row[4],
+            file_url: row[5],
+            no_rsv: row[6],
+            tag_status: row[7],
+            exchange_rate: row[8] || 1,
+            amount_sar: row[9] || 0
+        };
+
+        res.json(payment);
+    } catch (err) {
+        console.error("Error fetching payment:", err);
+        res.status(500).json({ message: "Failed to fetch payment" });
     }
 });
 

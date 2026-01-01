@@ -5,7 +5,7 @@ import Layout from '../layouts/DashboardLayout';
 import Button from '../components/Button';
 import Skeleton from '../components/Skeleton';
 import Tooltip from '../components/Tooltip';
-import { Plus, Eye, EyeOff, Trash2, ExternalLink, Calendar, CreditCard, DollarSign, FileText, User } from 'lucide-react';
+import { Plus, Eye, EyeOff, Trash2, ExternalLink, Calendar, CreditCard, DollarSign, FileText, User, Printer } from 'lucide-react';
 
 const StatusBadge = ({ status }) => {
     if (status === 'new') return <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-success/10 text-success uppercase tracking-wide">NEW</span>;
@@ -280,6 +280,16 @@ export default function Payments() {
                                             <StatusBadge status={p.tag_status} />
                                         </td>
                                         <td className="p-4 text-right flex justify-end gap-2 items-center">
+                                            <Tooltip text="Print Receipt">
+                                                <a
+                                                    href={`/payment-receipt/${p.id_payment}`}
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                    className="p-2 rounded-full text-gray-500 hover:bg-gray-100 hover:text-primary transition-colors"
+                                                >
+                                                    <Printer size={16} />
+                                                </a>
+                                            </Tooltip>
                                             {!isDeleted && (
                                                 <Tooltip text="Permanently Delete">
                                                     <button
@@ -305,6 +315,6 @@ export default function Payments() {
                     </table>
                 </div>
             </div>
-        </Layout>
+        </Layout >
     );
 }

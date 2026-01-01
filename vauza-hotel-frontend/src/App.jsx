@@ -10,15 +10,16 @@ export default function App() {
 
   const isLoginPage = location.pathname === '/login';
   const isCLPage = location.pathname.startsWith('/cl/');
-  const showSidebar = !isLoginPage && !isCLPage;
+  const isReceiptPage = location.pathname.startsWith('/payment-receipt/');
+  const showSidebar = !isLoginPage && !isCLPage && !isReceiptPage;
 
   return (
     <div className="flex min-h-screen bg-bgMain text-textMain font-sans">
       <Toaster position="top-right" reverseOrder={false} />
       {showSidebar && isSidebarOpen && <Sidebar />}
 
-      <main className={`flex-1 flex flex-col transition-all duration-300 ${!isLoginPage && !isCLPage ? 'h-screen overflow-y-auto' : ''}`}>
-        {/* Toggle Button Area - Only show if sidebar is technically allowed (not login/cl) */}
+      <main className={`flex-1 flex flex-col transition-all duration-300 ${!showSidebar ? 'h-screen overflow-y-auto print:h-auto print:overflow-visible' : ''}`}>
+        {/* Toggle Button Area - Only show if sidebar is technically allowed */}
         {showSidebar && (
           <div className="p-4 pb-0 sticky top-0 z-20 bg-gray-50/90 backdrop-blur-sm">
             <button
