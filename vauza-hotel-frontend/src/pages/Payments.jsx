@@ -8,9 +8,9 @@ import Tooltip from '../components/Tooltip';
 import { Plus, Eye, EyeOff, Trash2, ExternalLink, Calendar, CreditCard, DollarSign, FileText, User, Printer } from 'lucide-react';
 
 const StatusBadge = ({ status }) => {
-    if (status === 'new') return <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-success/10 text-success uppercase tracking-wide">NEW</span>;
-    if (status === 'edited') return <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-secondary/10 text-secondary uppercase tracking-wide">EDITED</span>;
-    if (status === 'delete') return <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-danger/10 text-danger uppercase tracking-wide">DELETED</span>;
+    if (status === 'new') return <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700 uppercase tracking-wide">NEW</span>;
+    if (status === 'edited') return <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700 uppercase tracking-wide">EDITED</span>;
+    if (status === 'delete') return <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-red-100 text-red-600 uppercase tracking-wide">DELETED</span>;
     return null;
 };
 
@@ -116,8 +116,8 @@ export default function Payments() {
             </div>
 
             {showForm && (
-                <div className="bg-white rounded-card p-8 shadow-card border border-gray-100 mb-10 max-w-[800px] animate-fade-in-up">
-                    <h3 className="text-lg font-black text-textMain mb-6 flex items-center gap-2">
+                <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 mb-10 max-w-[800px] animate-fade-in-up">
+                    <h3 className="text-lg font-bold text-textMain mb-6 flex items-center gap-2">
                         <CreditCard className="text-primary" size={24} />
                         New Payment Details
                     </h3>
@@ -218,7 +218,7 @@ export default function Payments() {
                             <Button
                                 onClick={submit}
                                 disabled={uploading}
-                                className="w-full py-4 text-sm shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+                                className="w-full py-4 text-sm bg-primary text-white hover:bg-primaryHover uppercase font-bold tracking-wide rounded-full shadow-lg shadow-primary/30"
                             >
                                 {uploading ? 'UPLOADING...' : 'SAVE PAYMENT'}
                             </Button>
@@ -227,86 +227,88 @@ export default function Payments() {
                 </div>
             )}
 
-            <div className="bg-white rounded-card shadow-card border border-gray-100 w-full overflow-hidden p-6">
-                <div className="overflow-x-auto">
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 w-full overflow-hidden flex flex-col h-[calc(100vh-200px)]">
+                <div className="overflow-auto flex-1 custom-scrollbar">
                     <table className="w-full min-w-max text-sm text-textMain border-collapse">
-                        <thead>
-                            <tr className="border-b border-gray-100">
-                                <th className="py-3 px-4 text-left font-bold uppercase text-[10px] tracking-wider text-textSub">Date</th>
-                                <th className="py-3 px-4 text-left font-bold uppercase text-[10px] tracking-wider text-textSub">Detail</th>
-                                <th className="py-3 px-4 text-left font-bold uppercase text-[10px] tracking-wider text-textSub">Client</th>
-                                <th className="py-3 px-4 text-left font-bold uppercase text-[10px] tracking-wider text-textSub">IDR</th>
-                                <th className="py-3 px-4 text-left font-bold uppercase text-[10px] tracking-wider text-textSub">Rate</th>
-                                <th className="py-3 px-4 text-left font-bold uppercase text-[10px] tracking-wider text-textSub">SAR</th>
-                                <th className="py-3 px-4 text-left font-bold uppercase text-[10px] tracking-wider text-textSub">Proof</th>
-                                <th className="py-3 px-4 text-left font-bold uppercase text-[10px] tracking-wider text-textSub">Status</th>
-                                <th className="py-3 px-4 text-right font-bold uppercase text-[10px] tracking-wider text-textSub">Action</th>
+                        <thead className="sticky top-0 z-20 bg-white shadow-sm">
+                            <tr>
+                                <th className="py-4 px-6 font-semibold uppercase text-[10px] tracking-wider text-textSub text-left border-b border-gray-100">Date</th>
+                                <th className="py-4 px-6 font-semibold uppercase text-[10px] tracking-wider text-textSub text-left border-b border-gray-100">Detail</th>
+                                <th className="py-4 px-6 font-semibold uppercase text-[10px] tracking-wider text-textSub text-left border-b border-gray-100">Client</th>
+                                <th className="py-4 px-6 font-semibold uppercase text-[10px] tracking-wider text-textSub text-right border-b border-gray-100">Amount (IDR)</th>
+                                <th className="py-4 px-6 font-semibold uppercase text-[10px] tracking-wider text-textSub text-right border-b border-gray-100">Kurs</th>
+                                <th className="py-4 px-6 font-semibold uppercase text-[10px] tracking-wider text-textSub text-right border-b border-gray-100">Amount (SAR)</th>
+                                <th className="py-4 px-6 font-semibold uppercase text-[10px] tracking-wider text-textSub text-center border-b border-gray-100">Proof</th>
+                                <th className="py-4 px-6 font-semibold uppercase text-[10px] tracking-wider text-textSub text-center border-b border-gray-100">Status</th>
+                                <th className="py-4 px-6 font-semibold uppercase text-[10px] tracking-wider text-textSub text-right border-b border-gray-100">Action</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody className="divide-y divide-gray-50">
                             {loading ? (
                                 Array(5).fill(0).map((_, i) => (
-                                    <tr key={i} className="border-b border-gray-50 last:border-0">
-                                        <td colSpan="9" className="p-4">
-                                            <Skeleton className="h-12 w-full" />
+                                    <tr key={i}>
+                                        <td colSpan="9" className="p-6">
+                                            <Skeleton className="h-8 w-full" />
                                         </td>
                                     </tr>
                                 ))
                             ) : filteredPayments.map(p => {
                                 const isDeleted = p.tag_status === 'delete';
                                 return (
-                                    <tr key={p.id_payment} className={`transition-all border-b border-gray-50 last:border-0 ${isDeleted ? 'opacity-50 grayscale' : 'hover:bg-gray-50'}`}>
-                                        <td className="p-4 text-textMain font-bold text-xs">{p.date}</td>
-                                        <td className="p-4 relative font-medium text-textMain">
+                                    <tr key={p.id_payment} className={`group hover:bg-gray-50 transition-colors ${isDeleted ? 'opacity-50 grayscale bg-gray-50' : ''}`}>
+                                        <td className="px-6 py-4 text-textSub font-bold text-xs whitespace-nowrap">{p.date}</td>
+                                        <td className="px-6 py-4 font-medium text-textMain max-w-[250px] whitespace-normal break-words leading-relaxed">
                                             {p.detail}
                                         </td>
-                                        <td className="p-4 font-bold text-textMain">{p.nama_client}</td>
-                                        <td className="p-4 font-mono text-xs">{Number(p.amount).toLocaleString()}</td>
-                                        <td className="p-4 font-mono text-xs text-textSub">{p.exchange_rate}</td>
-                                        <td className="p-4 font-mono text-xs text-primary font-bold">{(Number(p.amount_sar) || 0).toLocaleString()} SAR</td>
-                                        <td className="p-4">
+                                        <td className="px-6 py-4 font-bold text-textMain">{p.nama_client}</td>
+                                        <td className="px-6 py-4 font-mono text-xs text-right text-textSub">{Number(p.amount).toLocaleString()}</td>
+                                        <td className="px-6 py-4 font-mono text-xs text-right text-textSub">{p.exchange_rate}</td>
+                                        <td className="px-6 py-4 font-mono text-sm text-right font-bold text-primary">
+                                            {(Number(p.amount_sar) || 0).toLocaleString()} <span className="text-[10px] text-gray-400 font-normal">SAR</span>
+                                        </td>
+                                        <td className="px-6 py-4 text-center">
                                             <a
                                                 href={p.file_url}
                                                 target="_blank"
                                                 rel="noreferrer"
-                                                className='inline-block group'
+                                                className='inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 bg-white text-[10px] font-bold text-gray-600 hover:text-white hover:bg-primary hover:border-primary transition-all shadow-sm'
                                             >
-                                                <span className="flex items-center gap-1 text-[10px] font-bold text-primary bg-primary/10 px-2 py-1 rounded-md group-hover:bg-primary group-hover:text-white transition-colors">
-                                                    View <ExternalLink size={10} />
-                                                </span>
+                                                VIEW <ExternalLink size={10} />
                                             </a>
                                         </td>
-                                        <td className="p-4">
+                                        <td className="px-6 py-4 text-center">
                                             <StatusBadge status={p.tag_status} />
                                         </td>
-                                        <td className="p-4 text-right flex justify-end gap-2 items-center">
-                                            <Tooltip text="Print Receipt">
-                                                <a
-                                                    href={`/payment-receipt/${p.id_payment}`}
-                                                    target="_blank"
-                                                    rel="noreferrer"
-                                                    className="p-2 rounded-full text-gray-500 hover:bg-gray-100 hover:text-primary transition-colors"
-                                                >
-                                                    <Printer size={16} />
-                                                </a>
-                                            </Tooltip>
-                                            {!isDeleted && (
-                                                <Tooltip text="Permanently Delete">
-                                                    <button
-                                                        onClick={async () => {
-                                                            if (window.confirm(`Delete payment?`)) {
-                                                                await api.delete(`/payments/${p.id_payment}`);
-                                                                toast.success("Payment deleted");
-                                                                load();
-                                                            }
-                                                        }}
-                                                        className="p-2 rounded-full text-red-500 hover:bg-red-50 transition-colors"
+                                        <td className="px-6 py-4 text-right">
+                                            <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <Tooltip text="Print Receipt">
+                                                    <a
+                                                        href={`/payment-receipt/${p.id_payment}`}
+                                                        target="_blank"
+                                                        rel="noreferrer"
+                                                        className="p-2 rounded-full text-gray-600 hover:bg-gray-100 transition-colors inline-block"
                                                     >
-                                                        <Trash2 size={16} />
-                                                    </button>
+                                                        <Printer size={16} strokeWidth={2} />
+                                                    </a>
                                                 </Tooltip>
-                                            )}
-                                            {isDeleted && <span className="text-xs text-textSub italic font-medium px-2">Read Only</span>}
+                                                {!isDeleted && (
+                                                    <Tooltip text="Delete">
+                                                        <button
+                                                            onClick={async () => {
+                                                                if (window.confirm(`Delete payment?`)) {
+                                                                    await api.delete(`/payments/${p.id_payment}`);
+                                                                    toast.success("Payment deleted");
+                                                                    load();
+                                                                }
+                                                            }}
+                                                            className="p-2 rounded-full text-red-600 hover:bg-red-50 transition-colors"
+                                                        >
+                                                            <Trash2 size={16} strokeWidth={2} />
+                                                        </button>
+                                                    </Tooltip>
+                                                )}
+                                                {isDeleted && <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Deleted</span>}
+                                            </div>
                                         </td>
                                     </tr>
                                 );

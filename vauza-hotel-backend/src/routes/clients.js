@@ -5,23 +5,23 @@ dotenv.config();
 
 const router = express.Router();
 const SPREADSHEET_ID = process.env.GOOGLE_SHEET_ID;
-const RANGE = "clients!A:B";
+const RANGE = "clients!A:C";
 
 // GET ALL CLIENTS
 router.get("/", async (req, res) => {
     try {
         const result = await sheets.spreadsheets.values.get({
             spreadsheetId: SPREADSHEET_ID,
-            range: "clients!A:D", // Expand range
+            range: "clients!A:C", // Expand range
         });
 
         const rows = result.data.values || [];
         const data = rows.slice(1)
-            // .filter(row => row[3] !== 'delete') // REMOVED FILTER
+            // .filter(row => row[2] !== 'delete') // Check Col C (Index 2)
             .map((row) => ({
                 id_client: row[0],
                 nama_client: row[1],
-                tag_status: row[3] // Col D
+                tag_status: row[2] // Col C
             }));
 
         res.json(data);
@@ -39,11 +39,11 @@ router.post("/", async (req, res) => {
 
         await sheets.spreadsheets.values.append({
             spreadsheetId: SPREADSHEET_ID,
-            range: "clients!A:D",
+            range: "clients!A:C",
             valueInputOption: "USER_ENTERED",
             requestBody: {
-                // ID, Name, (Empty Col C), Tag Status
-                values: [[id_client, nama_client, "", tag_status]],
+                // ID, Name, Tag Status
+                values: [[id_client, nama_client, tag_status]],
             },
         });
 
@@ -67,13 +67,13 @@ router.put("/:id", async (req, res) => {
 
         const actualRow = rowIndex + 1;
 
-        // Update Name (Col B) and Status (Col D)
+        // Update Name (Col B) and Status (Col C)
         await sheets.spreadsheets.values.batchUpdate({
             spreadsheetId: SPREADSHEET_ID,
             requestBody: {
                 data: [
                     { range: `clients!B${actualRow}`, values: [[nama_client]] },
-                    { range: `clients!D${actualRow}`, values: [['edited']] }
+                    { range: `clients!C${actualRow}`, values: [['edited']] }
                 ],
                 valueInputOption: "USER_ENTERED"
             }
@@ -99,7 +99,7 @@ router.delete("/:id", async (req, res) => {
 
         await sheets.spreadsheets.values.update({
             spreadsheetId: SPREADSHEET_ID,
-            range: `clients!D${actualRow}`,
+            range: `clients!C${actualRow}`,
             valueInputOption: "USER_ENTERED",
             requestBody: { values: [['delete']] }
         });

@@ -8,9 +8,9 @@ import Tooltip from '../components/Tooltip';
 import { Edit2, Trash2, Eye, EyeOff, MapPin } from 'lucide-react';
 
 const StatusBadge = ({ status }) => {
-    if (status === 'new') return <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-success/10 text-success uppercase tracking-wide">NEW</span>;
-    if (status === 'edited') return <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-secondary/10 text-secondary uppercase tracking-wide">EDITED</span>;
-    if (status === 'delete') return <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-danger/10 text-danger uppercase tracking-wide">DELETED</span>;
+    if (status === 'new') return <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700 uppercase tracking-wide">NEW</span>;
+    if (status === 'edited') return <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700 uppercase tracking-wide">EDITED</span>;
+    if (status === 'delete') return <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-red-100 text-red-600 uppercase tracking-wide">DELETED</span>;
     return null;
 };
 
@@ -77,24 +77,24 @@ export default function Hotels() {
         const filteredList = showDeleted ? list : list.filter(h => h.tag_status !== 'delete');
 
         return (
-            <div className="bg-white rounded-card shadow-card border border-gray-100 overflow-hidden flex-1 min-w-[300px] p-6">
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex-1 min-w-[300px] p-6 flex flex-col">
                 <div className="flex justify-between items-center mb-6">
                     <h3 className="font-bold text-lg text-textMain tracking-tight">{title}</h3>
                     <button
                         onClick={() => setShowDeleted(!showDeleted)}
-                        className={`p-2 rounded-lg transition-all ${showDeleted ? 'bg-primary/10 text-primary' : 'text-textSub hover:bg-gray-50'}`}
+                        className={`p-2 rounded-full transition-all ${showDeleted ? 'bg-primary/10 text-primary' : 'text-textSub hover:bg-gray-50'}`}
                         title={showDeleted ? "Hide Deleted" : "Show Deleted"}
                     >
                         {showDeleted ? <Eye size={16} /> : <EyeOff size={16} />}
                     </button>
                 </div>
                 <div className="overflow-x-auto">
-                    <table className="w-full min-w-max text-sm text-textMain">
+                    <table className="w-full min-w-max text-sm text-textMain border-collapse">
                         <thead>
-                            <tr className="border-b border-gray-100">
-                                <th className="py-3 px-4 text-left font-bold uppercase text-[10px] tracking-wider text-textSub">Hotel Name</th>
-                                <th className="py-3 px-4 text-left font-bold uppercase text-[10px] tracking-wider w-[100px] text-textSub">Status</th>
-                                <th className="py-3 px-4 text-right font-bold uppercase text-[10px] tracking-wider text-textSub">Action</th>
+                            <tr className="bg-white border-b border-gray-100">
+                                <th className="py-3 px-4 text-left font-semibold uppercase text-[10px] tracking-wider text-textSub">Hotel Name</th>
+                                <th className="py-3 px-4 text-left font-semibold uppercase text-[10px] tracking-wider w-[100px] text-textSub">Status</th>
+                                <th className="py-3 px-4 text-right font-semibold uppercase text-[10px] tracking-wider text-textSub">Action</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -166,8 +166,8 @@ export default function Hotels() {
     return (
         <Layout title="Hotels">
 
-            <div className="bg-white rounded-card p-6 shadow-card border border-gray-100 mb-8 max-w-4xl">
-                <h3 className="text-sm font-bold text-textSub mb-4 uppercase tracking-wider">
+            <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 mb-8 max-w-4xl">
+                <h3 className="text-sm font-bold text-textSub mb-6 uppercase tracking-wider">
                     {editId ? 'Edit Hotel' : 'Add New Hotel'}
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6 items-end">
@@ -177,7 +177,7 @@ export default function Hotels() {
                             value={name}
                             onChange={e => setName(e.target.value)}
                             placeholder="Enter hotel name"
-                            className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-medium text-textMain placeholder-gray-400"
+                            className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-medium text-textMain placeholder-gray-400"
                         />
                     </div>
                     <div>
@@ -186,7 +186,7 @@ export default function Hotels() {
                             <select
                                 value={city}
                                 onChange={e => setCity(e.target.value)}
-                                className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 appearance-none focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-medium text-textMain"
+                                className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 appearance-none focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-medium text-textMain"
                             >
                                 <option value="Makkah">Makkah</option>
                                 <option value="Madinah">Madinah</option>
@@ -197,7 +197,7 @@ export default function Hotels() {
                     <div className="flex gap-2">
                         <Button
                             onClick={handleSubmit}
-                            className={`flex-1 rounded-lg h-[46px] flex items-center justify-center ${editId ? 'bg-secondary hover:bg-secondary/90' : 'bg-primary hover:bg-primaryHover'}`}
+                            className={`flex-1 rounded-full h-[46px] flex items-center justify-center shadow-lg shadow-primary/20 ${editId ? 'bg-amber-500 hover:bg-amber-600 text-white' : 'bg-primary hover:bg-primaryHover text-white'}`}
                         >
                             {editId ? 'UPDATE' : 'ADD'}
                         </Button>
@@ -205,7 +205,7 @@ export default function Hotels() {
                             <Button
                                 variant="ghost"
                                 onClick={cancelEdit}
-                                className="h-[46px] px-4 font-bold text-gray-400"
+                                className="h-[46px] px-4 font-bold text-gray-400 hover:text-textMain"
                             >
                                 Cancel
                             </Button>

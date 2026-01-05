@@ -3,30 +3,46 @@ export default {
   theme: {
     extend: {
       colors: {
-        neu: '#FFFFFF', // Surface
-        primary: '#B142E8', // Purple
-        primaryHover: '#7655FA',
-        secondary: '#7655FA',
-        bgMain: '#F7F8FA', // Light Gray
-        textMain: '#1F2937',
-        textSub: '#6B7280',
-        success: '#097C69',
-        warning: '#F59638',
-        danger: '#F9357C',
+        neu: '#FFFFFF', // Pure White for cards
+        bgMain: '#F8FAFC', // Slate-50 (Off-white/Gray)
+        bgSection: '#FFFFFF', // Pure White for sections
+
+        // PRIMARY (Soft SaaS Blue - Indigo)
+        primary: '#4F46E5', // Indigo-600
+        primaryHover: '#4338CA', // Indigo-700
+
+        // SECONDARY ACCENTS (Pastels)
+        accentOrange: '#FFEDD5', // Orange-100
+        accentGreen: '#DCFCE7', // Green-100
+        accentPurple: '#F3E8FF', // Purple-100
+        accentCyan: '#CFFAFE', // Cyan-100
+        accentPink: '#FCE7F3', // Pink-100
+
+        // FUNCTIONAL
+        success: '#10B981', // Emerald-500
+        warning: '#F59E0B', // Amber-500
+        danger: '#EF4444', // Red-500
+
+        // TEXT (Slate)
+        textMain: '#1E293B', // Slate-800
+        textSub: '#64748B', // Slate-500
+
+        // Legacy mappings to prevent breaks
+        secondary: '#E2E8F0', // Slate-200 (Neutral)
+        accentSubtle: '#F1F5F9', // Slate-100 (Light Gray)
       },
       boxShadow: {
-        'card': '0 4px 18px rgba(0,0,0,0.05)',
-        'neu-flat': '0 4px 18px rgba(0,0,0,0.05)', // Backward compatibility
-        'neu-pressed': 'inner 0 0 0 transparent', // Disable pressed effect
-        'neu-button': '0 4px 6px -1px rgba(177, 66, 232, 0.3), 0 2px 4px -1px rgba(177, 66, 232, 0.06)',
+        'card': '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)', // Very soft
+        'neu-button': '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
       },
       fontFamily: {
-        sans: ['Archivo', 'sans-serif'],
+        sans: ['Montserrat', 'sans-serif'],
       },
       borderRadius: {
-        'card': '16px',
-        'xl': '1rem',
-        '2xl': '1.5rem',
+        'card': '16px', // 2xl equivalent
+        'pill': '9999px',
+        '2xl': '1rem',
+        '3xl': '1.5rem',
       },
       animation: {
         'fade-in-up': 'fadeInUp 0.5s ease-out',
@@ -39,12 +55,8 @@ export default {
         },
         bounceSmall: {
           '0%, 100%': { transform: 'scale(1)' },
-          '50%': { transform: 'scale(0.95)' },
+          '50%': { transform: 'scale(0.98)' },
         }
-      },
-      borderRadius: {
-        'xl': '1rem',
-        '2xl': '1.5rem',
       },
     },
   },

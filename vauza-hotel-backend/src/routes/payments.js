@@ -19,49 +19,6 @@ router.use((req, res, next) => {
 // GET /payments/ping - Connectivity Test
 router.get('/ping', (req, res) => res.json({ message: "PONG" }));
 
-// GET /payments/detail/:id - Get Single Payment Detail
-router.get('/detail/:id', async (req, res) => {
-    console.log(`GET /payments/${req.params.id} HIT`);
-    try {
-        const { id } = req.params;
-
-        // Fetch Payments
-        const resPay = await sheets.spreadsheets.values.get({ spreadsheetId: SPREADSHEET_ID, range: "payments!A:Z" });
-        const pRows = resPay.data.values || [];
-        const row = pRows.find(r => r[0] === id);
-
-        if (!row || row[7] === 'delete') {
-            console.log("Payment not found in sheet");
-            return res.status(404).json({ message: "Payment not found" });
-        }
-
-        // Fetch Client Name
-        const resClients = await sheets.spreadsheets.values.get({ spreadsheetId: SPREADSHEET_ID, range: "clients!A:C" });
-        const cRows = resClients.data.values || [];
-        const clientRow = cRows.find(c => c[0] && c[0].toString().trim() === row[1]?.toString().trim());
-        const clientName = clientRow ? clientRow[1] : "Unknown";
-
-        const payment = {
-            id_payment: row[0],
-            id_client: row[1],
-            nama_client: clientName,
-            amount: row[2],
-            detail: row[3],
-            date: row[4],
-            file_url: row[5],
-            no_rsv: row[6],
-            tag_status: row[7],
-            exchange_rate: row[8] || 1,
-            amount_sar: row[9] || 0
-        };
-
-        res.json(payment);
-    } catch (err) {
-        console.error("Error fetching payment:", err);
-        res.status(500).json({ message: "Failed to fetch payment" });
-    }
-});
-
 // Local Storage Setup
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -72,7 +29,6 @@ const storage = multer.diskStorage({
         cb(null, uploadDir);
     },
     filename: (req, file, cb) => {
-        // Basic timestamp naming first (as requested)
         const timestamp = Date.now();
         const ext = path.extname(file.originalname);
         cb(null, `PAYMENT-${timestamp}${ext}`);
@@ -91,11 +47,55 @@ const auth = new google.auth.GoogleAuth({
 const sheets = google.sheets({ version: "v4", auth });
 const SPREADSHEET_ID = process.env.GOOGLE_SHEET_ID;
 
+import { uploadFile } from '../../server/services/googleDrive.js';
+
+// GET /payments/detail/:id - Get Single Payment Detail
+router.get('/detail/:id', async (req, res) => {
+    console.log(`GET /payments/${req.params.id} HIT`);
+    try {
+        const { id } = req.params;
+
+        // Fetch Payments
+        const resPay = await sheets.spreadsheets.values.get({ spreadsheetId: SPREADSHEET_ID, range: "payments!A:I" });
+        const pRows = resPay.data.values || [];
+        const row = pRows.find(r => r[0] === id);
+
+        if (!row || row[6] === 'delete') {
+            console.log("Payment not found in sheet");
+            return res.status(404).json({ message: "Payment not found" });
+        }
+
+        // Fetch Client Name
+        const resClients = await sheets.spreadsheets.values.get({ spreadsheetId: SPREADSHEET_ID, range: "clients!A:C" });
+        const cRows = resClients.data.values || [];
+        const clientRow = cRows.find(c => c[0] && c[0].toString().trim() === row[1]?.toString().trim());
+        const clientName = clientRow ? clientRow[1] : "Unknown";
+
+        const payment = {
+            id_payment: row[0],
+            id_client: row[1],
+            nama_client: clientName,
+            amount: row[2],
+            detail: row[3],
+            date: row[4],
+            file_url: row[5],
+            tag_status: row[6],
+            exchange_rate: row[7] || 1,
+            amount_sar: row[8] || 0
+        };
+
+        res.json(payment);
+    } catch (err) {
+        console.error("Error fetching payment:", err);
+        res.status(500).json({ message: "Failed to fetch payment" });
+    }
+});
+
 // GET /payments - List all payments
 router.get('/', async (req, res) => {
     try {
         // Fetch Payments
-        const resPay = await sheets.spreadsheets.values.get({ spreadsheetId: SPREADSHEET_ID, range: "payments!A:Z" });
+        const resPay = await sheets.spreadsheets.values.get({ spreadsheetId: SPREADSHEET_ID, range: "payments!A:I" });
         const pRows = resPay.data.values || [];
         if (pRows.length > 0) pRows.shift(); // Remove content header
 
@@ -118,10 +118,9 @@ router.get('/', async (req, res) => {
                 detail: row[3],
                 date: row[4],
                 file_url: row[5],
-                no_rsv: row[6],
-                tag_status: row[7],
-                exchange_rate: row[8] || 1, // Default to 1 if missing
-                amount_sar: row[9] || 0
+                tag_status: row[6],
+                exchange_rate: row[7] || 1,
+                amount_sar: row[8] || 0
             })).reverse();
 
         res.json(payments);
@@ -131,17 +130,17 @@ router.get('/', async (req, res) => {
     }
 });
 
-// GET /payments/:id - Get Single Payment Detail
+// GET /payments/:id - Get Single Payment Detail (Legacy/Alternate)
 router.get('/:id', async (req, res) => {
     try {
         const { id } = req.params;
 
         // Fetch Payments
-        const resPay = await sheets.spreadsheets.values.get({ spreadsheetId: SPREADSHEET_ID, range: "payments!A:Z" });
+        const resPay = await sheets.spreadsheets.values.get({ spreadsheetId: SPREADSHEET_ID, range: "payments!A:I" });
         const pRows = resPay.data.values || [];
         const row = pRows.find(r => r[0] === id);
 
-        if (!row || row[7] === 'delete') return res.status(404).json({ message: "Payment not found" });
+        if (!row || row[6] === 'delete') return res.status(404).json({ message: "Payment not found" });
 
         // Fetch Client Name
         const resClients = await sheets.spreadsheets.values.get({ spreadsheetId: SPREADSHEET_ID, range: "clients!A:C" });
@@ -157,10 +156,9 @@ router.get('/:id', async (req, res) => {
             detail: row[3],
             date: row[4],
             file_url: row[5],
-            no_rsv: row[6],
-            tag_status: row[7],
-            exchange_rate: row[8] || 1,
-            amount_sar: row[9] || 0
+            tag_status: row[6],
+            exchange_rate: row[7] || 1,
+            amount_sar: row[8] || 0
         };
 
         res.json(payment);
@@ -170,11 +168,8 @@ router.get('/:id', async (req, res) => {
     }
 });
 
-import { uploadFile } from '../../server/services/googleDrive.js';
 
-// ... (imports remain)
-
-// POST /payments - Create Payment & Upload Proof (Google Drive)
+// POST /payments - Create Payment & Upload Proof
 router.post('/', upload.single('file'), async (req, res) => {
     try {
         const { id_client, amount, detail, date, exchange_rate } = req.body;
@@ -211,8 +206,6 @@ router.post('/', upload.single('file'), async (req, res) => {
         const newPath = path.join(path.dirname(file.path), newFilename);
 
         fs.renameSync(file.path, newPath);
-
-        // Update file object path for the drive service
         file.path = newPath;
 
         // 3. Upload to Google Drive
@@ -224,7 +217,7 @@ router.post('/', upload.single('file'), async (req, res) => {
             throw new Error("Failed to upload to Google Drive");
         }
 
-        // 4. Delete Local File (Cleanup)
+        // 4. Cleanup Local File
         if (fs.existsSync(newPath)) {
             fs.unlinkSync(newPath);
         }
@@ -239,10 +232,9 @@ router.post('/', upload.single('file'), async (req, res) => {
         const valueDate = date || new Date().toISOString().split('T')[0];
         const tag_status = 'new';
 
-
         await sheets.spreadsheets.values.append({
             spreadsheetId: SPREADSHEET_ID,
-            range: "payments!A:J",
+            range: "payments!A:I",
             valueInputOption: "USER_ENTERED",
             requestBody: {
                 values: [[
@@ -251,8 +243,7 @@ router.post('/', upload.single('file'), async (req, res) => {
                     amount,
                     detail || "",
                     valueDate,
-                    fileUrl, // Drive Link
-                    "",
+                    fileUrl,
                     tag_status,
                     rate,
                     amount_sar
@@ -264,10 +255,8 @@ router.post('/', upload.single('file'), async (req, res) => {
 
     } catch (err) {
         console.error("Error creating payment:", err);
-        // Clean up
         if (req.file && fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
-        const renamedPath = req.file ? path.join(path.dirname(req.file.path), `${Date.now()}`) : null; // Rough fallback, assume it might be renamed
-        // Actually, we rely on the logic inside try block to clean up newPath if it exists. 
+        // Try cleanup renamed path if possible, but obscure to guess.
         res.status(500).json({ message: "Failed to create payment" });
     }
 });
@@ -286,7 +275,7 @@ router.delete("/:id_payment", async (req, res) => {
 
         await sheets.spreadsheets.values.update({
             spreadsheetId: SPREADSHEET_ID,
-            range: `payments!H${actualRow}`,
+            range: `payments!G${actualRow}`,
             valueInputOption: "USER_ENTERED",
             requestBody: { values: [['delete']] }
         });

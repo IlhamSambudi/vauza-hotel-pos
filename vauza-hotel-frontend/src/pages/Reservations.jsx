@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import api from '../services/api';
+import { formatDate } from '../utils/formatDate';
 import EditModal from '../components/EditReservationModal';
 import Layout from '../layouts/DashboardLayout';
 import Button from '../components/Button';
@@ -10,16 +11,16 @@ import Tooltip from '../components/Tooltip';
 import { Edit2, Printer, Trash2, Eye, EyeOff, Plus, Calendar, User, Building, CreditCard } from 'lucide-react';
 
 const StatusBadge = ({ status }) => {
-    if (status === 'new') return <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-success/10 text-success uppercase tracking-wide">NEW</span>;
-    if (status === 'edited') return <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-secondary/10 text-secondary uppercase tracking-wide">EDITED</span>;
-    if (status === 'delete') return <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-danger/10 text-danger uppercase tracking-wide">DELETED</span>;
+    if (status === 'new') return <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700 uppercase tracking-wide">NEW</span>;
+    if (status === 'edited') return <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700 uppercase tracking-wide">EDITED</span>;
+    if (status === 'delete') return <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-red-100 text-red-600 uppercase tracking-wide">DELETED</span>;
     return null;
 };
 
 const BookingBadge = ({ status }) => {
     const styles = {
-        'Definite': 'bg-green-100 text-green-700',
-        'Tentative': 'bg-red-100 text-red-700',
+        'Definite': 'bg-emerald-100 text-emerald-700',
+        'Tentative': 'bg-red-100 text-red-600',
         'default': 'bg-gray-100 text-gray-600'
     };
     return (
@@ -31,8 +32,11 @@ const BookingBadge = ({ status }) => {
 
 const PaymentBadge = ({ status }) => {
     const styles = {
-        'full_payment': 'bg-success/10 text-success',
-        'default': 'bg-warning/10 text-warning'
+        'unpaid': 'bg-red-100 text-red-600',
+        'dp_30': 'bg-orange-100 text-orange-700',
+        'partial': 'bg-yellow-100 text-yellow-700',
+        'full_payment': 'bg-emerald-100 text-emerald-700',
+        'default': 'bg-gray-100 text-gray-600'
     };
     const map = {
         'unpaid': 'UNPAID',
@@ -58,19 +62,10 @@ export default function Reservations() {
     const [showDeleted, setShowDeleted] = useState(false);
 
     const [form, setForm] = useState({
-        no_rsv: '',
-        id_client: '',
-        id_hotel: '',
-        checkin: '',
-        checkout: '',
-        room_double: 0,
-        room_triple: 0,
-        room_quad: 0,
-        room_double_rate: 0,
-        room_triple_rate: 0,
-        room_quad_rate: 0,
-        meal: '',
-        deadline_payment: ''
+        no_rsv: '', id_client: '', id_hotel: '', checkin: '', checkout: '',
+        room_double: 0, room_triple: 0, room_quad: 0, room_extra: 0,
+        room_double_rate: 0, room_triple_rate: 0, room_quad_rate: 0, room_extra_rate: 0,
+        meal: '', deadline_payment: ''
     });
 
     const load = async () => {
@@ -112,7 +107,7 @@ export default function Reservations() {
 
     const saveEdit = async (payload) => {
         try {
-            await api.put(`/reservations/${payload.no_rsv}/payment`, payload);
+            await api.put(`/reservations/${payload.no_rsv}`, payload);
             toast.success("Reservation updated");
             setEditData(null);
             load();
@@ -132,18 +127,10 @@ export default function Reservations() {
         }
     };
 
-    const formatDate = (dateString) => {
-        if (!dateString) return '';
-        const date = new Date(dateString);
-        if (isNaN(date.getTime())) return 'Invalid Date';
-        const day = String(date.getDate()).padStart(2, '0');
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const year = date.getFullYear();
-        return `${day}/${month}/${year}`;
-    };
 
-    const labelClass = "text-[10px] font-bold text-textSub mb-2 block uppercase tracking-wide ml-1";
-    const inputClass = "w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-textMain focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all placeholder-gray-400 font-medium";
+
+    const labelClass = "text-xs font-semibold text-textSub mb-2 block uppercase tracking-wide ml-1";
+    const inputClass = "w-full bg-white border border-gray-200 rounded-lg px-4 py-3 text-textMain focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all placeholder-gray-400 font-medium";
     const filteredReservations = showDeleted ? reservations : reservations.filter(r => r.tag_status !== 'delete');
 
     return (
@@ -160,7 +147,7 @@ export default function Reservations() {
 
                 <button
                     onClick={() => setShowDeleted(!showDeleted)}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wide transition-all ${showDeleted ? 'bg-primary/10 text-primary' : 'bg-white text-textSub hover:bg-gray-50 border border-gray-200'}`}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wide transition-all ${showDeleted ? 'bg-indigo-50 text-indigo-600' : 'bg-white text-textSub hover:bg-gray-50 border border-gray-200'}`}
                 >
                     {showDeleted ? <><Eye size={14} /> Hide Deleted</> : <><EyeOff size={14} /> Show Deleted</>}
                 </button>
@@ -168,8 +155,8 @@ export default function Reservations() {
 
             {/* FORM CREATE */}
             {showForm && (
-                <div className="bg-white rounded-card p-8 shadow-card border border-gray-100 mb-10 animate-fade-in-up">
-                    <h3 className="text-lg font-black text-textMain mb-6 flex items-center gap-2">
+                <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 mb-10 animate-fade-in-up">
+                    <h3 className="text-lg font-bold text-textMain mb-6 flex items-center gap-2">
                         <Calendar className="text-primary" size={24} />
                         New Reservation Details
                     </h3>
@@ -226,7 +213,22 @@ export default function Reservations() {
                         {/* Dates */}
                         <div>
                             <label className={labelClass}>Checkin</label>
-                            <input type="date" className={inputClass} onChange={e => setForm({ ...form, checkin: e.target.value })} />
+                            <input
+                                type="date"
+                                className={inputClass}
+                                onChange={e => {
+                                    const dateVal = e.target.value;
+                                    const deadline = new Date(dateVal);
+                                    deadline.setDate(deadline.getDate() - 15);
+                                    const deadlineStr = deadline.toISOString().split('T')[0];
+
+                                    setForm({
+                                        ...form,
+                                        checkin: dateVal,
+                                        deadline_payment: deadlineStr
+                                    });
+                                }}
+                            />
                         </div>
                         <div>
                             <label className={labelClass}>Checkout</label>
@@ -234,30 +236,51 @@ export default function Reservations() {
                         </div>
 
                         {/* Rooms & Rates - Grouped */}
-                        <div className="md:col-span-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 bg-gray-50 p-6 rounded-xl border border-gray-100">
-                            <div>
-                                <label className={labelClass}>Double Qty</label>
-                                <input placeholder="0" type="number" className={inputClass} onChange={e => setForm({ ...form, room_double: +e.target.value })} />
+                        <div className="md:col-span-4 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-4 bg-gray-50/50 p-6 rounded-2xl border border-gray-100">
+
+                            {/* Layout: Qty | Rate for each type */}
+                            <div className="col-span-1 grid grid-cols-2 gap-2 border-r border-gray-200 pr-4">
+                                <div>
+                                    <label className={labelClass}>Dbl Qty</label>
+                                    <input placeholder="0" type="number" className={inputClass} onChange={e => setForm({ ...form, room_double: +e.target.value })} />
+                                </div>
+                                <div>
+                                    <label className={labelClass}>Rate</label>
+                                    <input placeholder="0" type="number" className={inputClass} onChange={e => setForm({ ...form, room_double_rate: +e.target.value })} />
+                                </div>
                             </div>
-                            <div>
-                                <label className={labelClass}>Double Rate (SAR)</label>
-                                <input placeholder="0" type="number" className={inputClass} onChange={e => setForm({ ...form, room_double_rate: +e.target.value })} />
+
+                            <div className="col-span-1 grid grid-cols-2 gap-2 border-r border-gray-200 pr-4">
+                                <div>
+                                    <label className={labelClass}>Trpl Qty</label>
+                                    <input placeholder="0" type="number" className={inputClass} onChange={e => setForm({ ...form, room_triple: +e.target.value })} />
+                                </div>
+                                <div>
+                                    <label className={labelClass}>Rate</label>
+                                    <input placeholder="0" type="number" className={inputClass} onChange={e => setForm({ ...form, room_triple_rate: +e.target.value })} />
+                                </div>
                             </div>
-                            <div>
-                                <label className={labelClass}>Triple Qty</label>
-                                <input placeholder="0" type="number" className={inputClass} onChange={e => setForm({ ...form, room_triple: +e.target.value })} />
+
+                            <div className="col-span-1 grid grid-cols-2 gap-2 border-r border-gray-200 pr-4">
+                                <div>
+                                    <label className={labelClass}>Quad Qty</label>
+                                    <input placeholder="0" type="number" className={inputClass} onChange={e => setForm({ ...form, room_quad: +e.target.value })} />
+                                </div>
+                                <div>
+                                    <label className={labelClass}>Rate</label>
+                                    <input placeholder="0" type="number" className={inputClass} onChange={e => setForm({ ...form, room_quad_rate: +e.target.value })} />
+                                </div>
                             </div>
-                            <div>
-                                <label className={labelClass}>Triple Rate (SAR)</label>
-                                <input placeholder="0" type="number" className={inputClass} onChange={e => setForm({ ...form, room_triple_rate: +e.target.value })} />
-                            </div>
-                            <div>
-                                <label className={labelClass}>Quad Qty</label>
-                                <input placeholder="0" type="number" className={inputClass} onChange={e => setForm({ ...form, room_quad: +e.target.value })} />
-                            </div>
-                            <div>
-                                <label className={labelClass}>Quad Rate (SAR)</label>
-                                <input placeholder="0" type="number" className={inputClass} onChange={e => setForm({ ...form, room_quad_rate: +e.target.value })} />
+
+                            <div className="col-span-1 grid grid-cols-2 gap-2">
+                                <div>
+                                    <label className={labelClass}>Extra/Sts</label>
+                                    <input placeholder="0" type="number" className={inputClass} onChange={e => setForm({ ...form, room_extra: +e.target.value })} />
+                                </div>
+                                <div>
+                                    <label className={labelClass}>Rate</label>
+                                    <input placeholder="0" type="number" className={inputClass} onChange={e => setForm({ ...form, room_extra_rate: +e.target.value })} />
+                                </div>
                             </div>
                         </div>
 
@@ -277,11 +300,16 @@ export default function Reservations() {
                         </div>
                         <div className="md:col-span-2">
                             <label className={labelClass}>Deadline Payment</label>
-                            <input type="date" className={inputClass} onChange={e => setForm({ ...form, deadline_payment: e.target.value })} />
+                            <input
+                                type="date"
+                                className={inputClass}
+                                value={form.deadline_payment}
+                                onChange={e => setForm({ ...form, deadline_payment: e.target.value })}
+                            />
                         </div>
 
                         <div className="md:col-span-4 pt-4 flex justify-end">
-                            <Button onClick={submit} className="px-8 py-3 text-sm shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+                            <Button onClick={submit} className="bg-primary text-white hover:bg-primaryHover uppercase font-bold tracking-wide rounded-full shadow-lg shadow-primary/30">
                                 CREATE RESERVATION
                             </Button>
                         </div>
@@ -290,95 +318,108 @@ export default function Reservations() {
             )}
 
             {/* TABLE */}
-            <div className="bg-white rounded-card shadow-card border border-gray-100 w-full overflow-hidden p-6">
-                <div className="overflow-x-auto">
-                    <table className="w-full min-w-max text-sm text-textMain whitespace-nowrap border-collapse">
-                        <thead>
-                            <tr className="border-b border-gray-100">
-                                <th className="py-3 px-4 text-left font-bold uppercase text-[10px] tracking-wider text-textSub">RSV #</th>
-                                <th className="py-3 px-4 text-left font-bold uppercase text-[10px] tracking-wider text-textSub">Client</th>
-                                <th className="py-3 px-4 text-left font-bold uppercase text-[10px] tracking-wider text-textSub">Hotel</th>
-                                <th className="py-3 px-4 text-left font-bold uppercase text-[10px] tracking-wider text-textSub">Dates</th>
-                                <th className="py-3 px-4 text-left font-bold uppercase text-[10px] tracking-wider text-textSub">Amount (SAR)</th>
-                                <th className="py-3 px-4 text-left font-bold uppercase text-[10px] tracking-wider text-textSub">Meal</th>
-                                <th className="py-3 px-4 text-left font-bold uppercase text-[10px] tracking-wider text-textSub">Paid (SAR)</th>
-                                <th className="py-3 px-4 text-left font-bold uppercase text-[10px] tracking-wider text-textSub">Booking</th>
-                                <th className="py-3 px-4 text-left font-bold uppercase text-[10px] tracking-wider text-textSub">Payment</th>
-                                <th className="py-3 px-4 text-left font-bold uppercase text-[10px] tracking-wider text-textSub">Status</th>
-                                <th className="py-3 px-4 text-right font-bold uppercase text-[10px] tracking-wider text-textSub">Action</th>
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 w-full overflow-hidden flex flex-col h-[calc(100vh-200px)]">
+                <div className="overflow-auto flex-1 custom-scrollbar">
+                    <table className="w-full text-sm text-left border-collapse">
+                        <thead className="sticky top-0 z-20 bg-white shadow-sm">
+                            <tr>
+                                <th className="py-4 px-6 font-semibold uppercase text-[10px] tracking-wider text-textSub border-b border-gray-100">RSV #</th>
+                                <th className="py-4 px-6 font-semibold uppercase text-[10px] tracking-wider text-textSub border-b border-gray-100">Client</th>
+                                <th className="py-4 px-6 font-semibold uppercase text-[10px] tracking-wider text-textSub border-b border-gray-100">Hotel</th>
+                                <th className="py-4 px-6 font-semibold uppercase text-[10px] tracking-wider text-textSub border-b border-gray-100">Stay Dates</th>
+                                <th className="py-4 px-6 font-semibold uppercase text-[10px] tracking-wider text-textSub text-right border-b border-gray-100">Amount (SAR)</th>
+                                <th className="py-4 px-6 font-semibold uppercase text-[10px] tracking-wider text-textSub border-b border-gray-100">Meal</th>
+                                <th className="py-4 px-6 font-semibold uppercase text-[10px] tracking-wider text-textSub text-right border-b border-gray-100">Paid (SAR)</th>
+                                <th className="py-4 px-6 font-semibold uppercase text-[10px] tracking-wider text-textSub text-center border-b border-gray-100">Booking</th>
+                                <th className="py-4 px-6 font-semibold uppercase text-[10px] tracking-wider text-textSub text-center border-b border-gray-100">Payment</th>
+                                <th className="py-4 px-6 font-semibold uppercase text-[10px] tracking-wider text-textSub text-center border-b border-gray-100">Status</th>
+                                <th className="py-4 px-6 font-semibold uppercase text-[10px] tracking-wider text-textSub text-right border-b border-gray-100">Action</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody className="divide-y divide-gray-50">
                             {loading ? (
                                 Array(5).fill(0).map((_, i) => (
-                                    <tr key={i} className="border-b border-gray-50 last:border-0">
-                                        <td colSpan="11" className="p-4">
-                                            <Skeleton className="h-12 w-full" />
+                                    <tr key={i}>
+                                        <td colSpan="11" className="p-6">
+                                            <Skeleton className="h-8 w-full" />
                                         </td>
                                     </tr>
                                 ))
                             ) : filteredReservations.map(r => {
                                 const isDeleted = r.tag_status === 'delete';
                                 return (
-                                    <tr key={r.no_rsv} className={`transition-all border-b border-gray-50 last:border-0 ${isDeleted ? 'opacity-50 grayscale' : 'hover:bg-gray-50'}`}>
-                                        <td className="p-4 relative">
-                                            <span className="font-mono font-bold text-primary bg-primary/5 px-2 py-1 rounded-md text-xs">{r.no_rsv}</span>
+                                    <tr key={r.no_rsv} className={`group hover:bg-gray-50 transition-colors ${isDeleted ? 'opacity-50 grayscale bg-gray-50' : ''}`}>
+                                        <td className="px-6 py-4">
+                                            <span className="font-mono text-xs font-bold text-primary bg-primary/5 px-2 py-1 rounded">{r.no_rsv}</span>
                                         </td>
-                                        <td className="p-4 font-bold text-textMain">{r.nama_client}</td>
-                                        <td className="p-4 text-xs font-semibold text-textSub">{r.nama_hotel}</td>
-                                        <td className="p-4 text-xs text-textSub">
-                                            <div>In: <span className="text-textMain font-medium">{formatDate(r.checkin)}</span></div>
-                                            <div>Out: <span className="text-textMain font-medium">{formatDate(r.checkout)}</span></div>
+                                        <td className="px-6 py-4">
+                                            <div className="font-bold text-textMain">{r.nama_client}</div>
                                         </td>
-                                        <td className="p-4 font-mono font-bold text-textMain">{Number(r.total_amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                                        <td className="p-4 text-xs font-medium">{r.meal}</td>
-                                        <td className="p-4 font-mono text-textSub">{Number(r.paid_amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                                        <td className="p-4">
+                                        <td className="px-6 py-4">
+                                            <div className="text-xs font-semibold text-textSub uppercase tracking-wide">{r.nama_hotel}</div>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className="flex flex-col gap-1 text-xs">
+                                                <div className="flex items-center gap-2 text-textSub">
+                                                    <span className="w-8 uppercase font-bold text-[10px] text-gray-400">In</span>
+                                                    <span className="font-medium bg-gray-50 px-1.5 py-0.5 rounded text-textMain">{formatDate(r.checkin)}</span>
+                                                </div>
+                                                <div className="flex items-center gap-2 text-textSub">
+                                                    <span className="w-8 uppercase font-bold text-[10px] text-gray-400">Out</span>
+                                                    <span className="font-medium bg-gray-50 px-1.5 py-0.5 rounded text-textMain">{formatDate(r.checkout)}</span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4 text-right">
+                                            <span className="font-mono font-bold text-textMain">{Number(r.total_amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <span className="text-xs font-medium text-textSub bg-gray-50 px-2 py-1 rounded inline-block">{r.meal}</span>
+                                        </td>
+                                        <td className="px-6 py-4 text-right">
+                                            <span className="font-mono text-textSub">{Number(r.paid_amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                                        </td>
+                                        <td className="px-6 py-4 text-center">
                                             <BookingBadge status={r.status_booking} />
                                         </td>
-                                        <td className="p-4">
+                                        <td className="px-6 py-4 text-center">
                                             <PaymentBadge status={r.status_payment} />
                                         </td>
-                                        <td className="p-4">
+                                        <td className="px-6 py-4 text-center">
                                             <StatusBadge status={r.tag_status} />
                                         </td>
-                                        <td className="p-4 text-right flex justify-end gap-2 items-center">
-                                            {!isDeleted && (
-                                                <Tooltip text="Edit Reservation">
-                                                    <button
-                                                        onClick={() => setEditData(r)}
-                                                        className="p-2 rounded-full text-blue-500 hover:bg-blue-50 transition-colors"
-                                                    >
-                                                        <Edit2 size={16} />
-                                                    </button>
-                                                </Tooltip>
-                                            )}
-                                            <Tooltip text="Print Confirmation Letter">
-                                                <button
-                                                    onClick={() => {
-                                                        if (r.status_booking !== 'Definite') {
-                                                            toast.error('Comparison Letter hanya untuk status Definite');
-                                                        } else {
-                                                            const url = `/cl/${r.no_rsv}`;
-                                                            window.open(url, '_blank');
-                                                        }
-                                                    }}
-                                                    className="p-2 rounded-full text-gray-500 hover:bg-gray-100 transition-colors"
-                                                >
-                                                    <Printer size={16} />
-                                                </button>
-                                            </Tooltip>
-                                            {!isDeleted && (
-                                                <Tooltip text="Permanently Delete">
-                                                    <button
-                                                        onClick={() => deleteRsv(r.no_rsv)}
-                                                        className="p-2 rounded-full text-red-500 hover:bg-red-50 transition-colors"
-                                                    >
-                                                        <Trash2 size={16} />
-                                                    </button>
-                                                </Tooltip>
-                                            )}
-                                            {isDeleted && <span className="text-xs text-textSub italic font-medium px-2">Read Only</span>}
+                                        <td className="px-6 py-4 text-right">
+                                            <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                {!isDeleted && (
+                                                    <>
+                                                        <Tooltip text="Edit">
+                                                            <button
+                                                                onClick={() => setEditData(r)}
+                                                                className="p-2 rounded-full text-indigo-600 hover:bg-indigo-50 transition-colors"
+                                                            >
+                                                                <Edit2 size={16} strokeWidth={2} />
+                                                            </button>
+                                                        </Tooltip>
+                                                        <Tooltip text="Print">
+                                                            <button
+                                                                onClick={() => window.open(`/cl/${r.no_rsv}`, '_blank')}
+                                                                className="p-2 rounded-full text-gray-600 hover:bg-gray-100 transition-colors"
+                                                            >
+                                                                <Printer size={16} strokeWidth={2} />
+                                                            </button>
+                                                        </Tooltip>
+                                                        <Tooltip text="Delete">
+                                                            <button
+                                                                onClick={() => deleteRsv(r.no_rsv)}
+                                                                className="p-2 rounded-full text-red-600 hover:bg-red-50 transition-colors"
+                                                            >
+                                                                <Trash2 size={16} strokeWidth={2} />
+                                                            </button>
+                                                        </Tooltip>
+                                                    </>
+                                                )}
+                                                {isDeleted && <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Deleted</span>}
+                                            </div>
                                         </td>
                                     </tr>
                                 );

@@ -1,6 +1,7 @@
 import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import api from "../services/api";
+import { formatDate } from "../utils/formatDate";
 import Logo from "../assets/logo.png";
 import Signature from "../assets/ttd_fina.png";
 
@@ -14,13 +15,7 @@ export default function ConfirmationLetter() {
         api.get(`/reservations/${no_rsv}/rooms`).then(res => setRooms(res.data));
     }, [no_rsv]);
 
-    const formatDate = (dateString, isToday = false) => {
-        const date = isToday ? new Date() : new Date(dateString);
-        const day = String(date.getDate()).padStart(2, '0');
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const year = date.getFullYear();
-        return `${day}/${month}/${year}`;
-    };
+
 
     if (!data) return <p>Loading...</p>;
 
@@ -45,7 +40,7 @@ export default function ConfirmationLetter() {
                     <img src={Logo} alt="Logo" className="h-16 object-contain" />
                 </div>
 
-                <p><strong>Tanggal</strong> {formatDate(null, true)}</p>
+                <p><strong>Tanggal</strong> {formatDate(new Date())}</p>
                 <p><strong>Kepada</strong> {data.nama_client}</p>
                 <br></br>
                 <p className="mb-4">
@@ -222,7 +217,7 @@ export default function ConfirmationLetter() {
                 <div className="text-sm mt-6">
                     <p><strong>NAMA BANK :</strong> BANK MANDIRI</p>
                     <p><strong>NAMA AKUN :</strong> VAUZA TAMMA ABADI</p>
-                    <p><strong>NOMOR AKUN :</strong> 1440055515156</p>
+                    <p><strong>NOMOR REKENENING :</strong> 1440055515156</p>
                 </div>
 
                 <div className="mt-10 mb-2">

@@ -5,12 +5,12 @@ import Layout from "../layouts/DashboardLayout";
 import Button from "../components/Button";
 import Skeleton from "../components/Skeleton";
 import Tooltip from "../components/Tooltip";
-import { Edit2, Trash2 } from 'lucide-react';
+import { Edit2, Trash2, Plus } from 'lucide-react';
 
 const StatusBadge = ({ status }) => {
-    if (status === 'new') return <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-success/10 text-success uppercase tracking-wide">NEW</span>;
-    if (status === 'edited') return <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-secondary/10 text-secondary uppercase tracking-wide">EDITED</span>;
-    if (status === 'delete') return <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-danger/10 text-danger uppercase tracking-wide">DELETED</span>;
+    if (status === 'new') return <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700 uppercase tracking-wide">NEW</span>;
+    if (status === 'edited') return <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700 uppercase tracking-wide">EDITED</span>;
+    if (status === 'delete') return <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-red-100 text-red-600 uppercase tracking-wide">DELETED</span>;
     return null;
 };
 
@@ -69,25 +69,25 @@ export default function Clients() {
     return (
         <Layout title="Clients">
             {/* Input Form */}
-            <div className="p-6 mb-8 max-w-xl bg-white rounded-card shadow-card border border-gray-100">
-                <h3 className="text-sm font-bold text-textSub mb-4 uppercase tracking-wider">
-                    {editId ? 'Edit Client' : 'Add New Client'}
+            <div className="p-8 mb-8 max-w-xl bg-white rounded-2xl shadow-sm border border-gray-100 animate-fade-in-up">
+                <h3 className="text-sm font-bold text-textSub mb-4 uppercase tracking-wider flex items-center gap-2">
+                    {editId ? <><Edit2 size={16} /> Edit Client</> : <><Plus className="text-primary" size={16} /> Add New Client</>}
                 </h3>
                 <div className="flex gap-4">
                     <input
                         value={name}
                         onChange={e => setName(e.target.value)}
-                        placeholder="Client name"
-                        className="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-medium text-textMain placeholder-gray-400"
+                        placeholder="Enter client name..."
+                        className="flex-1 bg-white border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-medium text-textMain placeholder-gray-400"
                     />
                     <Button
                         onClick={handleSubmit}
-                        className={`${editId ? 'bg-secondary hover:bg-secondary/90' : 'bg-primary hover:bg-primaryHover'}`}
+                        className={`uppercase font-bold tracking-wide px-6 rounded-xl shadow-lg shadow-primary/20 ${editId ? 'bg-amber-500 hover:bg-amber-600 text-white' : 'bg-primary hover:bg-primaryHover text-white'}`}
                     >
                         {editId ? 'UPDATE' : 'ADD'}
                     </Button>
                     {editId && (
-                        <Button variant="ghost" onClick={cancelEdit} className="text-xs uppercase font-bold text-gray-400 hover:text-textMain">
+                        <Button variant="ghost" onClick={cancelEdit} className="text-xs uppercase font-bold text-gray-400 hover:text-textMain px-4">
                             Cancel
                         </Button>
                     )}
@@ -95,21 +95,21 @@ export default function Clients() {
             </div>
 
             {/* Table */}
-            <div className="bg-white rounded-card shadow-card border border-gray-100 p-6">
-                <div className="overflow-x-auto">
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 flex flex-col h-[calc(100vh-320px)] overflow-hidden">
+                <div className="overflow-auto flex-1 custom-scrollbar">
                     <table className="w-full text-sm text-left border-collapse">
-                        <thead>
-                            <tr className="border-b border-gray-100">
-                                <th className="py-3 px-4 font-bold text-xs uppercase text-textSub tracking-wider">Client Name</th>
-                                <th className="py-3 px-4 font-bold text-xs uppercase text-textSub tracking-wider">Status</th>
-                                <th className="py-3 px-4 font-bold text-xs uppercase text-textSub tracking-wider text-right">Action</th>
+                        <thead className="sticky top-0 z-10 bg-white shadow-sm">
+                            <tr>
+                                <th className="py-4 px-6 font-semibold text-[10px] uppercase text-textSub tracking-wider border-b border-gray-100">Client Name</th>
+                                <th className="py-4 px-6 font-semibold text-[10px] uppercase text-textSub tracking-wider text-center border-b border-gray-100">Status</th>
+                                <th className="py-4 px-6 font-semibold text-[10px] uppercase text-textSub tracking-wider text-right border-b border-gray-100">Action</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody className="divide-y divide-gray-50">
                             {loading ? (
                                 Array(5).fill(0).map((_, i) => (
-                                    <tr key={i} className="border-b border-gray-50 last:border-0">
-                                        <td colSpan="3" className="p-4">
+                                    <tr key={i}>
+                                        <td colSpan="3" className="p-6">
                                             <Skeleton className="h-10 w-full" />
                                         </td>
                                     </tr>
@@ -119,46 +119,48 @@ export default function Clients() {
                                 return (
                                     <tr
                                         key={c.id_client}
-                                        className={`transition-all border-b border-gray-50 last:border-0 ${isDeleted ? 'opacity-50 grayscale' : 'hover:bg-gray-50'}`}
+                                        className={`group hover:bg-gray-50 transition-colors ${isDeleted ? 'opacity-50 grayscale bg-gray-50' : ''}`}
                                     >
-                                        <td className="p-4 font-bold text-textMain px-4 py-4">
+                                        <td className="px-6 py-4 font-bold text-textMain">
                                             {c.nama_client}
                                         </td>
-                                        <td className="px-4 py-4">
+                                        <td className="px-6 py-4 text-center">
                                             <StatusBadge status={c.tag_status} />
                                         </td>
-                                        <td className="px-4 py-4 text-right flex justify-end gap-2 items-center">
-                                            {!isDeleted && (
-                                                <>
-                                                    <Tooltip text="Edit Client">
-                                                        <button
-                                                            onClick={() => startEdit(c)}
-                                                            className="p-2 rounded-full text-blue-500 hover:bg-blue-50 transition-colors"
-                                                        >
-                                                            <Edit2 size={16} />
-                                                        </button>
-                                                    </Tooltip>
-                                                    <Tooltip text="Delete Client">
-                                                        <button
-                                                            onClick={async () => {
-                                                                if (window.confirm(`Delete client ${c.nama_client}?`)) {
-                                                                    try {
-                                                                        await api.delete(`/clients/${c.id_client}`);
-                                                                        toast.success("Client deleted");
-                                                                        load();
-                                                                    } catch (err) {
-                                                                        toast.error("Failed to delete client");
+                                        <td className="px-6 py-4 text-right">
+                                            <div className="flex justify-end gap-2 items-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                                {!isDeleted && (
+                                                    <>
+                                                        <Tooltip text="Edit">
+                                                            <button
+                                                                onClick={() => startEdit(c)}
+                                                                className="p-2 rounded-full text-indigo-600 hover:bg-indigo-50 transition-colors"
+                                                            >
+                                                                <Edit2 size={16} strokeWidth={2} />
+                                                            </button>
+                                                        </Tooltip>
+                                                        <Tooltip text="Delete">
+                                                            <button
+                                                                onClick={async () => {
+                                                                    if (window.confirm(`Delete client ${c.nama_client}?`)) {
+                                                                        try {
+                                                                            await api.delete(`/clients/${c.id_client}`);
+                                                                            toast.success("Client deleted");
+                                                                            load();
+                                                                        } catch (err) {
+                                                                            toast.error("Failed to delete client");
+                                                                        }
                                                                     }
-                                                                }
-                                                            }}
-                                                            className="p-2 rounded-full text-red-500 hover:bg-red-50 transition-colors"
-                                                        >
-                                                            <Trash2 size={16} />
-                                                        </button>
-                                                    </Tooltip>
-                                                </>
-                                            )}
-                                            {isDeleted && <span className="text-xs text-textSub italic font-medium">Read Only</span>}
+                                                                }}
+                                                                className="p-2 rounded-full text-red-600 hover:bg-red-50 transition-colors"
+                                                            >
+                                                                <Trash2 size={16} strokeWidth={2} />
+                                                            </button>
+                                                        </Tooltip>
+                                                    </>
+                                                )}
+                                                {isDeleted && <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Deleted</span>}
+                                            </div>
                                         </td>
                                     </tr>
                                 );

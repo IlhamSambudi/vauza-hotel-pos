@@ -1,6 +1,8 @@
-require('dotenv').config();
-const mysql = require('mysql2');
-const bcrypt = require('bcryptjs');
+import dotenv from 'dotenv';
+import mysql from 'mysql2';
+import bcrypt from 'bcryptjs';
+
+dotenv.config();
 
 const db = mysql.createPool({
     host: 'localhost',

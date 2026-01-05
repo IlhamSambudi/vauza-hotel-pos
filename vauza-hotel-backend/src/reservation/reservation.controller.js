@@ -262,6 +262,107 @@ export const updateStatus = (req, res) => {
     });
 };
 
+export const updateReservation = (req, res) => {
+    const { no_rsv } = req.params;
+    const {
+        status_booking,
+        status_payment,
+        payment, // Optional additional payment
+        room_double = 0,
+        room_triple = 0,
+        room_quad = 0,
+        room_double_rate = 0,
+        room_triple_rate = 0,
+        room_quad_rate = 0,
+        meal
+    } = req.body;
+
+    // 1. Get current reservation
+    const sqlGet = 'SELECT * FROM reservations WHERE no_rsv = ?';
+    db.query(sqlGet, [no_rsv], (err, rows) => {
+        if (err || rows.length === 0) return res.status(500).json({ message: 'Reservation not found' });
+
+        const r = rows[0];
+        const staynight = r.staynight;
+
+        // 2. Recalculate totals
+        const total_room = parseInt(room_double) + parseInt(room_triple) + parseInt(room_quad);
+        const total_amount = (
+            (parseInt(room_double) * parseInt(room_double_rate)) +
+            (parseInt(room_triple) * parseInt(room_triple_rate)) +
+            (parseInt(room_quad) * parseInt(room_quad_rate))
+        ) * staynight;
+
+        // 3. Calculate Payment
+        const paymentInput = parseInt(payment || 0);
+        const currentPaid = parseInt(r.paid_amount || 0);
+        // If editing, we might be adding payment OR just updating rooms. 
+        // If just updating rooms, paymentInput might be 0.
+        // If user wants to ADD payment, they fill the input.
+        const newPaid = currentPaid + paymentInput;
+
+        // Ensure paid doesn't exceed total (optional, but good practice unless refund)
+        // const finalPaid = Math.min(newPaid, total_amount); 
+        // Actually, if total decreases below paid, it's an overpayment. Let's keep it simple.
+        const finalPaid = newPaid;
+
+        // 4. Determine Status Payment
+        let newStatusPayment = status_payment;
+        if (finalPaid >= total_amount && total_amount > 0) {
+            newStatusPayment = 'full_payment';
+        } else if (finalPaid > 0) {
+            // If previously unpaid but now paid something, or partial. 
+            // Trust the requested status unless it's full payment automatically.
+            if (newStatusPayment === 'unpaid') newStatusPayment = 'partial';
+        }
+
+        // 5. Update Reservation Table
+        const sqlUpdate = `
+            UPDATE reservations SET
+            room_double = ?, room_triple = ?, room_quad = ?,
+            room_double_rate = ?, room_triple_rate = ?, room_quad_rate = ?,
+            total_room = ?, total_amount = ?, paid_amount = ?,
+            status_booking = ?, status_payment = ?, meal = ?
+            WHERE no_rsv = ?
+        `;
+
+        db.query(sqlUpdate, [
+            room_double, room_triple, room_quad,
+            room_double_rate, room_triple_rate, room_quad_rate,
+            total_room, total_amount, finalPaid,
+            status_booking, newStatusPayment, meal || r.meal,
+            no_rsv
+        ], (errUpd) => {
+            if (errUpd) {
+                console.error(errUpd);
+                return res.status(500).json({ message: 'Update failed' });
+            }
+
+            // 6. Update Reservation Rooms (Delete & Re-insert) to keep sync
+            const sqlDelRooms = 'DELETE FROM reservation_rooms WHERE no_rsv = ?';
+            db.query(sqlDelRooms, [no_rsv], (errDel) => {
+                if (errDel) console.error('Error deleting rooms for update:', errDel);
+
+                const roomInserts = [];
+                const m = meal || r.meal || 'Breakfast';
+                if (room_double > 0) roomInserts.push([no_rsv, 'Double Room', room_double, room_double_rate, m]);
+                if (room_triple > 0) roomInserts.push([no_rsv, 'Triple Room', room_triple, room_triple_rate, m]);
+                if (room_quad > 0) roomInserts.push([no_rsv, 'Quad Room', room_quad, room_quad_rate, m]);
+
+                if (roomInserts.length > 0) {
+                    const sqlIns = 'INSERT INTO reservation_rooms (no_rsv, room_type, qty, rate, meal) VALUES ?';
+                    db.query(sqlIns, [roomInserts], (errIns) => {
+                        if (errIns) console.error('Error re-inserting rooms:', errIns);
+                        res.json({ message: 'Reservation updated successfully' });
+                    });
+                } else {
+                    res.json({ message: 'Reservation updated successfully' });
+                }
+            });
+        });
+    });
+};
+
 export const updatePayment = (req, res) => {
     const { no_rsv } = req.params;
     const { status_booking, status_payment, payment } = req.body;

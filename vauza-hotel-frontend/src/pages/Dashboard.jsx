@@ -3,86 +3,16 @@ import authService from '../services/auth.service';
 import DashboardLayout from '../layouts/DashboardLayout';
 import api from '../services/api';
 import { formatDate } from '../utils/formatDate';
-import { Users, Building, CalendarDays, Wallet, BadgeCheck, Eye, EyeOff } from 'lucide-react';
-
-const StatCard = ({ title, value, icon: Icon, isCurrency, colorClass = "text-textMain" }) => (
-    <div className="bg-white p-6 rounded-card shadow-card hover:shadow-lg transition-all duration-300 border border-gray-100 group">
-        <div className="flex justify-between items-start mb-4">
-            <h3 className="text-textSub font-bold text-xs uppercase tracking-wider">{title}</h3>
-            <div className={`p-2 rounded-lg bg-gray-50 text-textSub group-hover:bg-primary/10 group-hover:text-primary transition-colors`}>
-                <Icon size={20} />
-            </div>
-        </div>
-        <div>
-            <span className={`text-3xl font-bold tracking-tight text-textMain`}>
-                {isCurrency ? (
-                    <span className="flex items-baseline gap-1">
-                        <span className="text-lg text-textSub font-medium">{value.toString().split(/[0-9]/)[0]}</span>
-                        {value.toLocaleString()}
-                    </span>
-                ) : value}
-            </span>
-        </div>
-    </div>
-);
-
-const StatusBadge = ({ status }) => {
-    if (status === 'new') return <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-success/10 text-success uppercase tracking-wide">NEW</span>;
-    if (status === 'edited') return <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-secondary/10 text-secondary uppercase tracking-wide">EDITED</span>;
-    if (status === 'delete') return <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-danger/10 text-danger uppercase tracking-wide">DELETED</span>;
-    return null;
-};
-
-const RecentTable = ({ title, data = [], headers, renderRow, hasStatusToggle, showDeleted, onToggleDelete }) => {
-    const safeData = Array.isArray(data) ? data : [];
-    const filteredData = showDeleted ? safeData : safeData.filter(item => item.tag_status !== 'delete');
-
-    return (
-        <div className="bg-white rounded-card p-6 shadow-card border border-gray-100 flex-1 min-w-[300px]">
-            <div className="flex justify-between items-center mb-6">
-                <h3 className="text-lg font-bold text-textMain tracking-tight">
-                    {title}
-                </h3>
-                {hasStatusToggle && (
-                    <button
-                        onClick={onToggleDelete}
-                        className={`p-2 rounded-lg transition-all ${showDeleted ? 'bg-primary/10 text-primary' : 'text-textSub hover:bg-gray-50'}`}
-                        title={showDeleted ? "Hide Deleted" : "Show Deleted"}
-                    >
-                        {showDeleted ? <Eye size={16} /> : <EyeOff size={16} />}
-                    </button>
-                )}
-            </div>
-            <div className="overflow-x-auto">
-                <table className="w-full text-sm text-left border-collapse">
-                    <thead>
-                        <tr className="border-b border-gray-100">
-                            {headers.map((h, i) => (
-                                <th key={i} className="py-3 px-4 font-bold text-xs uppercase text-textSub tracking-wider">
-                                    {h === 'Status' ? '' : h}
-                                </th>
-                            ))}
-                            {title === "Recent Reservations" && <th className="py-3 px-4"></th>}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {filteredData.map((item, i) => renderRow(item, i))}
-                        {filteredData.length === 0 && (
-                            <tr>
-                                <td colSpan={headers.length + (title === "Recent Reservations" ? 1 : 0)} className="py-8 text-center text-textSub text-sm">No data found.</td>
-                            </tr>
-                        )}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    );
-};
+import { Users, Building, CalendarDays, Wallet, BadgeCheck, Eye, EyeOff, TriangleAlert, Clock } from 'lucide-react';
+import StatCard from '../components/StatCard';
+import StatusBadge from '../components/StatusBadge';
+import RecentTable from '../components/RecentTable';
 
 const Dashboard = () => {
     const user = authService.getCurrentUser();
     const [currency, setCurrency] = useState('IDR');
 
+    // ... stats state loading logic ... (Keep unchanged mostly)
     const [stats, setStats] = useState({
         clients: 0, hotels: 0, reservations: 0, revenue: 0, revenueSar: 0,
         tagNew: 0, tagEdited: 0, tagDeleted: 0
@@ -92,6 +22,7 @@ const Dashboard = () => {
         clients: [], hotels: [], reservations: [], payments: []
     });
 
+    const [alerts, setAlerts] = useState([]);
     const [showDeleted, setShowDeleted] = useState(false);
 
     useEffect(() => {
@@ -112,6 +43,62 @@ const Dashboard = () => {
                 const activePayments = payments.filter(p => p.tag_status !== 'delete');
                 const totalRevenue = activePayments.reduce((sum, pay) => sum + (Number(pay.amount) || 0), 0);
                 const totalRevenueSar = activePayments.reduce((sum, pay) => sum + (Number(pay.amount_sar) || 0), 0);
+
+                // Process Alerts
+                const today = new Date();
+                today.setHours(0, 0, 0, 0); // Local Midnight
+
+                const processedAlerts = reservations
+                    .filter(res =>
+                        res.tag_status !== 'delete' &&
+                        res.status_payment !== 'full_payment' &&
+                        res.deadline_payment
+                    )
+                    .map(res => {
+                        // Parse deadline as Local Calendar Date
+                        // Support both dd/mm/yyyy (Google Sheets) and yyyy-mm-dd (ISO)
+                        let deadline = null;
+
+                        if (typeof res.deadline_payment === 'string') {
+                            if (res.deadline_payment.includes('/')) {
+                                // Assume dd/mm/yyyy
+                                const parts = res.deadline_payment.split('/');
+                                if (parts.length === 3) {
+                                    const day = parseInt(parts[0], 10);
+                                    const month = parseInt(parts[1], 10) - 1;
+                                    const year = parseInt(parts[2], 10);
+                                    deadline = new Date(year, month, day);
+                                }
+                            } else if (res.deadline_payment.includes('-')) {
+                                // Assume yyyy-mm-dd
+                                const parts = res.deadline_payment.split(/[-T]/);
+                                const year = parseInt(parts[0], 10);
+                                const month = parseInt(parts[1], 10) - 1;
+                                const day = parseInt(parts[2], 10);
+                                deadline = new Date(year, month, day);
+                            }
+                        }
+
+                        // Fallback or ensure valid date
+                        if (!deadline || isNaN(deadline.getTime())) {
+                            deadline = new Date(res.deadline_payment);
+                            deadline.setHours(0, 0, 0, 0);
+                        }
+
+                        // Calculate difference in Calendar Days
+                        const diffTime = deadline.getTime() - today.getTime();
+                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                        let type = null;
+                        if (diffDays < 0) type = 'overdue';
+                        else if (diffDays <= 4) type = 'urgent';
+
+                        return { ...res, diffDays, type };
+                    })
+                    .filter(res => res.type) // Only keep overdue or urgent
+                    .sort((a, b) => a.diffDays - b.diffDays); // Sort by urgency (most overdue first)
+
+                setAlerts(processedAlerts);
 
                 const allData = [...clients, ...hotels, ...reservations, ...payments];
                 const countTag = (tag) => allData.filter(item => item.tag_status === tag).length;
@@ -149,36 +136,114 @@ const Dashboard = () => {
     return (
         <DashboardLayout title="Overview">
             {/* WELCOME CARD */}
-            <div className="bg-white rounded-card p-6 shadow-card border border-gray-100 mb-8 flex flex-col md:flex-row items-center justify-between gap-4">
-                <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xl">
-                        {user?.username?.charAt(0).toUpperCase()}
+            <div className="bg-gradient-to-r from-primary/90 to-primary rounded-2xl p-8 shadow-lg shadow-primary/20 mb-8 flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden text-white">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+
+                <div className="flex items-center gap-5 relative z-10">
+                    <div className="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center text-white font-bold text-3xl shadow-inner border border-white/20">
+                        {user?.username ? user.username.charAt(0).toUpperCase() : 'U'}
                     </div>
                     <div>
-                        <h2 className="text-lg font-bold text-textMain">Welcome back, {user?.username}</h2>
-                        <p className="text-sm text-textSub">Here's what's happening today.</p>
+                        <h2 className="text-2xl font-bold tracking-tight">Welcome back, {user?.username}</h2>
+                        <p className="text-indigo-100 mt-1 font-medium">Here's your operational summary for today.</p>
                     </div>
                 </div>
                 <button
                     onClick={toggleCurrency}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all text-sm font-bold border ${currency === 'IDR' ? 'border-gray-200 text-textSub hover:border-primary hover:text-primary' : 'bg-primary text-white border-primary shadow-lg'}`}
+                    className="relative z-10 flex items-center gap-2 px-6 py-3 rounded-xl transition-all text-sm font-bold bg-white text-primary shadow-lg hover:shadow-xl active:scale-95 border border-white"
                 >
-                    <Wallet size={16} />
-                    <span>{currency} Currency</span>
+                    <Wallet size={18} strokeWidth={2.5} />
+                    <span>{currency} Mode</span>
                 </button>
             </div>
 
+            {/* ALERT SECTION */}
+            {alerts.length > 0 && (
+                <div className="mb-8">
+                    <h3 className="text-lg font-bold text-textMain mb-4 flex items-center gap-2">
+                        <TriangleAlert className="text-amber-500" />
+                        Payment Reminders
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {alerts.map((alert) => (
+                            <div
+                                key={alert.no_rsv}
+                                className={`p-4 rounded-2xl border flex flex-col gap-3 shadow-sm transition-all hover:shadow-md ${alert.type === 'overdue'
+                                    ? 'bg-red-50 border-red-100'
+                                    : 'bg-amber-50 border-amber-100'
+                                    }`}
+                            >
+                                <div className="flex justify-between items-start">
+                                    <div className="flex items-center gap-2">
+                                        <div className={`p-2 rounded-full ${alert.type === 'overdue' ? 'bg-red-100 text-red-600' : 'bg-amber-100 text-amber-600'
+                                            }`}>
+                                            <Clock size={16} strokeWidth={2.5} />
+                                        </div>
+                                        <div>
+                                            <p className={`text-xs font-bold uppercase tracking-wide ${alert.type === 'overdue' ? 'text-red-600' : 'text-amber-600'
+                                                }`}>
+                                                {alert.type === 'overdue' ? 'Overdue' : 'Due Soon'}
+                                            </p>
+                                            <p className="text-sm font-bold text-textMain line-clamp-1">{alert.nama_client}</p>
+                                        </div>
+                                    </div>
+                                    <span className="text-xs font-mono font-bold bg-white/50 px-2 py-1 rounded-lg text-textSub">
+                                        {alert.no_rsv}
+                                    </span>
+                                </div>
+
+                                <div className="bg-gray-50 border border-gray-100 rounded-lg p-2 flex flex-col gap-1">
+                                    <div className="flex items-center gap-2 text-xs font-semibold text-textMain">
+                                        <Building size={12} className="text-primary" />
+                                        <span className="truncate" title={alert.nama_hotel}>{alert.nama_hotel}</span>
+                                    </div>
+                                    <div className="flex items-center gap-2 text-xs text-textSub">
+                                        <CalendarDays size={12} />
+                                        <span>{formatDate(alert.checkin)} - {formatDate(alert.checkout)}</span>
+                                    </div>
+                                </div>
+
+                                <div className="flex justify-between items-end border-t border-black/5 pt-3">
+                                    <div>
+                                        <p className="text-xs text-textSub mb-0.5">Deadline</p>
+                                        <p className="text-sm font-semibold text-textMain flex items-center gap-1">
+                                            <CalendarDays size={14} className="text-textSub" />
+                                            {formatDate(alert.deadline_payment)}
+                                        </p>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="text-xs text-textSub mb-0.5">Remaining</p>
+                                        <p className="text-sm font-bold text-textMain">
+                                            {(Number(alert.total_amount) - Number(alert.paid_amount || 0)).toLocaleString()}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                {alert.type === 'overdue' ? (
+                                    <div className="text-xs font-bold text-red-600 bg-red-100/50 px-3 py-1.5 rounded-lg text-center mt-1">
+                                        {Math.abs(alert.diffDays)} days late
+                                    </div>
+                                ) : (
+                                    <div className="text-xs font-bold text-amber-700 bg-amber-100/50 px-3 py-1.5 rounded-lg text-center mt-1">
+                                        Due in {alert.diffDays} days
+                                    </div>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+
             {/* STATS GRID */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                <StatCard title="Total Clients" value={stats.clients} icon={Users} colorClass="text-blue-600" />
-                <StatCard title="Partner Hotels" value={stats.hotels} icon={Building} colorClass="text-orange-600" />
-                <StatCard title="Active Reservations" value={stats.reservations} icon={CalendarDays} colorClass="text-purple-600" />
+                <StatCard title="Total Clients" value={stats.clients} icon={Users} />
+                <StatCard title="Partner Hotels" value={stats.hotels} icon={Building} />
+                <StatCard title="Active Reservations" value={stats.reservations} icon={CalendarDays} />
                 <StatCard
                     title={`Total Revenue (${currency})`}
                     value={currency === 'IDR' ? stats.revenue : stats.revenueSar}
                     icon={BadgeCheck}
                     isCurrency
-                    colorClass="text-green-600"
                 />
             </div>
 
@@ -193,9 +258,9 @@ const Dashboard = () => {
                     showDeleted={showDeleted}
                     onToggleDelete={() => setShowDeleted(!showDeleted)}
                     renderRow={(c) => (
-                        <tr key={c.id_client} className={`hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-0 ${c.tag_status === 'delete' ? 'opacity-50 grayscale' : ''}`}>
-                            <td className="p-4 font-bold text-textMain">{c.nama_client}</td>
-                            <td className="p-4 text-right"><StatusBadge status={c.tag_status} /></td>
+                        <tr key={c.id_client} className={`group hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-0 ${c.tag_status === 'delete' ? 'opacity-50 grayscale' : ''}`}>
+                            <td className="px-6 py-4 font-bold text-textMain">{c.nama_client}</td>
+                            <td className="px-6 py-4 text-right"><StatusBadge status={c.tag_status} /></td>
                         </tr>
                     )}
                 />
@@ -209,10 +274,10 @@ const Dashboard = () => {
                     showDeleted={showDeleted}
                     onToggleDelete={() => setShowDeleted(!showDeleted)}
                     renderRow={(h) => (
-                        <tr key={h.id_hotel} className={`hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-0 ${h.tag_status === 'delete' ? 'opacity-50 grayscale' : ''}`}>
-                            <td className="p-4 font-bold text-textMain">{h.nama_hotel}</td>
-                            <td className="p-4 text-textSub text-xs font-semibold uppercase">{h.city}</td>
-                            <td className="p-4 text-right"><StatusBadge status={h.tag_status} /></td>
+                        <tr key={h.id_hotel} className={`group hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-0 ${h.tag_status === 'delete' ? 'opacity-50 grayscale' : ''}`}>
+                            <td className="px-6 py-4 font-bold text-textMain">{h.nama_hotel}</td>
+                            <td className="px-6 py-4 text-textSub text-xs font-semibold uppercase tracking-wider">{h.city}</td>
+                            <td className="px-6 py-4 text-right"><StatusBadge status={h.tag_status} /></td>
                         </tr>
                     )}
                 />
@@ -226,11 +291,11 @@ const Dashboard = () => {
                     showDeleted={showDeleted}
                     onToggleDelete={() => setShowDeleted(!showDeleted)}
                     renderRow={(r) => (
-                        <tr key={r.no_rsv} className={`hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-0 ${r.tag_status === 'delete' ? 'opacity-50 grayscale' : ''}`}>
-                            <td className="p-4 font-mono text-xs font-bold text-primary">{r.no_rsv}</td>
-                            <td className="p-4 font-bold text-textMain truncate max-w-[120px]">{r.nama_client}</td>
-                            <td className="p-4 text-textSub text-xs truncate max-w-[120px]">{r.nama_hotel}</td>
-                            <td className="p-4 text-right"><StatusBadge status={r.tag_status} /></td>
+                        <tr key={r.no_rsv} className={`group hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-0 ${r.tag_status === 'delete' ? 'opacity-50 grayscale' : ''}`}>
+                            <td className="px-6 py-4 font-mono text-xs font-bold text-primary bg-primary/5 rounded-lg w-min whitespace-nowrap px-3">{r.no_rsv}</td>
+                            <td className="px-6 py-4 font-bold text-textMain truncate max-w-[120px]">{r.nama_client}</td>
+                            <td className="px-6 py-4 text-textSub text-xs truncate max-w-[120px]">{r.nama_hotel}</td>
+                            <td className="px-6 py-4 text-right"><StatusBadge status={r.tag_status} /></td>
                         </tr>
                     )}
                 />
@@ -244,16 +309,16 @@ const Dashboard = () => {
                     showDeleted={showDeleted}
                     onToggleDelete={() => setShowDeleted(!showDeleted)}
                     renderRow={(p) => (
-                        <tr key={p.id_payment} className={`hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-0 ${p.tag_status === 'delete' ? 'opacity-50 grayscale' : ''}`}>
-                            <td className="p-4 text-textSub text-xs font-medium">{formatDate(p.date)}</td>
-                            <td className="p-4 font-bold text-textMain truncate max-w-[120px]">{p.nama_client}</td>
-                            <td className="p-4 font-mono text-xs font-bold text-textMain">
+                        <tr key={p.id_payment} className={`group hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-0 ${p.tag_status === 'delete' ? 'opacity-50 grayscale' : ''}`}>
+                            <td className="px-6 py-4 text-textSub text-xs font-medium tabular-nums">{formatDate(p.date)}</td>
+                            <td className="px-6 py-4 font-bold text-textMain truncate max-w-[120px]">{p.nama_client}</td>
+                            <td className="px-6 py-4 font-mono text-xs font-bold text-textMain">
                                 {currency === 'IDR'
                                     ? Number(p.amount).toLocaleString()
                                     : `${Number(p.amount_sar || 0).toLocaleString()} SAR`
                                 }
                             </td>
-                            <td className="p-4 text-right"><StatusBadge status={p.tag_status} /></td>
+                            <td className="px-6 py-4 text-right"><StatusBadge status={p.tag_status} /></td>
                         </tr>
                     )}
                 />

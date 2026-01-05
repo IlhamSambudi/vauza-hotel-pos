@@ -1,12 +1,27 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 
 export default function Login({ onLogin }) {
+    const navigate = useNavigate();
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
+
+    useEffect(() => {
+        const token = localStorage.getItem('token');
+        if (token) {
+            navigate('/dashboard');
+        }
+    }, [navigate]);
+
+    // Prevent rendering the login form if we are already authenticated
+    // This stops the "flash" of content before the useEffect redirects
+    if (localStorage.getItem('token')) {
+        return null;
+    }
 
     const submit = async (e) => {
         e.preventDefault();
@@ -16,7 +31,10 @@ export default function Login({ onLogin }) {
         try {
             const res = await api.post('/auth/login', { username, password });
             localStorage.setItem('token', res.data.token);
-            window.location.href = '/'; // Hard reload to ensure state resets, or use navigate('/')
+            if (res.data.user) {
+                localStorage.setItem('user', JSON.stringify(res.data.user));
+            }
+            window.location.href = '/dashboard'; // Hard reload to ensure state resets, or use navigate('/dashboard')
         } catch {
             setError('Username atau password salah');
         } finally {
@@ -25,27 +43,32 @@ export default function Login({ onLogin }) {
     };
 
     return (
-        <div className="min-h-screen w-screen flex items-center justify-center bg-neu relative overflow-hidden font-sans">
-            <div className="w-full max-w-md bg-neu rounded-2xl shadow-neu-flat p-8 relative z-10 mx-4">
+        <div className="min-h-screen w-screen flex items-center justify-center bg-gray-50 font-sans">
+            <div className="w-full max-w-md bg-white border border-gray-200 rounded-2xl shadow-xl p-10">
 
-                <div className="mb-8 text-center">
-                    <h1 className="text-3xl font-black text-primary tracking-tighter drop-shadow-sm">
+                <div className="mb-10 text-center">
+                    <div className="w-16 h-16 bg-primary/10 rounded-2xl mx-auto mb-6 flex items-center justify-center text-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 21v-7.5a.75.75 0 01.75-.75h3a.75.75 0 01.75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349m-16.5 11.65V9.35m0 0a3.001 3.001 0 003.75-.615A2.993 2.993 0 009.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 002.25 1.016c.896 0 1.7-.393 2.25-1.016a3.001 3.001 0 003.75.614m-16.5 0a3.004 3.004 0 01-.621-4.72L4.318 3.44A1.5 1.5 0 015.378 3h13.243a1.5 1.5 0 011.06.44l1.19 1.189a3 3 0 01-.621 4.72m-13.5 8.65h3.75a.75.75 0 00.75-.75V13.5a.75.75 0 00-.75-.75H6.75a.75.75 0 00-.75.75v3.75c0 .415.336.75.75.75z" />
+                        </svg>
+                    </div>
+                    <h1 className="text-3xl font-bold text-textMain tracking-tight">
                         Vauza POS
                     </h1>
-                    <p className="text-sm font-bold text-textSub mt-2 tracking-wide uppercase">
-                        Reservation System
+                    <p className="text-sm font-medium text-textSub mt-2 tracking-wide uppercase">
+                        Hotel Management System
                     </p>
                 </div>
 
                 {/* ERROR */}
                 {error && (
-                    <div className="mb-6 bg-neu text-red-500 text-sm font-bold px-4 py-3 rounded-xl shadow-neu-pressed text-center">
+                    <div className="mb-6 bg-red-50 border border-red-100 text-red-600 text-sm font-medium px-4 py-3 rounded-xl text-center">
                         {error}
                     </div>
                 )}
 
                 {/* FORM */}
-                <form onSubmit={submit} className="space-y-6">
+                <form onSubmit={submit} className="space-y-5">
                     <div>
                         <label className="block text-xs font-bold text-textSub mb-2 uppercase tracking-wider ml-1">
                             Username
@@ -54,8 +77,8 @@ export default function Login({ onLogin }) {
                             type="text"
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
-                            className="w-full bg-neu text-textMain placeholder-textSub/40 rounded-xl px-5 py-4 focus:outline-none focus:ring-2 focus:ring-primary/20 shadow-neu-pressed transition-all font-medium"
-                            placeholder="Enter username"
+                            className="w-full bg-gray-50 border border-gray-200 text-textMain placeholder-gray-400 rounded-xl px-5 py-4 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-medium"
+                            placeholder="Enter your username"
                             required
                         />
                     </div>
@@ -69,14 +92,14 @@ export default function Login({ onLogin }) {
                                 type={showPassword ? "text" : "password"}
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
-                                className="w-full bg-neu text-textMain placeholder-textSub/40 rounded-xl px-5 py-4 pr-12 focus:outline-none focus:ring-2 focus:ring-primary/20 shadow-neu-pressed transition-all font-medium"
-                                placeholder="Enter password"
+                                className="w-full bg-gray-50 border border-gray-200 text-textMain placeholder-gray-400 rounded-xl px-5 py-4 pr-12 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-medium"
+                                placeholder="Enter your password"
                                 required
                             />
                             <button
                                 type="button"
                                 onClick={() => setShowPassword(!showPassword)}
-                                className="absolute inset-y-0 right-0 flex items-center px-4 text-textSub hover:text-primary transition-colors"
+                                className="absolute inset-y-0 right-0 flex items-center px-4 text-gray-400 hover:text-textMain transition-colors"
                             >
                                 {showPassword ? (
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
@@ -90,21 +113,28 @@ export default function Login({ onLogin }) {
                                 )}
                             </button>
                         </div>
-
                     </div>
 
                     <button
                         type="submit"
                         disabled={loading}
-                        className="w-full bg-neu text-primary py-4 rounded-xl hover:text-primaryHover transition-all disabled:opacity-50 font-black tracking-wide shadow-neu-flat active:shadow-neu-pressed hover:-translate-y-0.5"
+                        className="w-full bg-primary text-white py-4 rounded-full hover:bg-primaryHover hover:shadow-lg transition-all disabled:opacity-50 font-bold tracking-wide transform active:scale-[0.98] shadow-lg shadow-primary/20"
                     >
-                        {loading ? 'SIGNING IN...' : 'LOGIN'}
+                        {loading ? 'AUTHENTICATING...' : 'ACCESS DASHBOARD'}
                     </button>
+
+                    <div className="text-center">
+                        <a href="#" className="text-xs font-medium text-gray-400 hover:text-textMain transition-colors">
+                            Forgot your password?
+                        </a>
+                    </div>
                 </form>
 
                 {/* FOOTER */}
-                <div className="mt-8 text-center text-[10px] font-bold text-textSub uppercase tracking-widest opacity-60">
-                    © {new Date().getFullYear()} Vauza Tamma Abadi
+                <div className="mt-8 pt-6 border-t border-gray-100 text-center px-4">
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                        Secured by Vauza Tamma Abadi
+                    </p>
                 </div>
             </div>
         </div>

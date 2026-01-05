@@ -7,6 +7,7 @@ const router = express.Router();
 router.post('/', auth, controller.create);
 router.get('/', auth, controller.getAll);
 router.put('/:no_rsv/payment', auth, controller.updatePayment);
+router.put('/:no_rsv', auth, controller.updateReservation);
 router.get('/:no_rsv/rooms', auth, controller.getRooms);
 router.post('/:no_rsv/rooms', auth, controller.addRoom);
 router.get('/:no_rsv', auth, controller.getDetail);

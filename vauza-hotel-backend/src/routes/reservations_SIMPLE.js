@@ -3,12 +3,12 @@ import sheets from "../../server/services/googleSheet.js";
 import dotenv from "dotenv";
 dotenv.config();
 
-console.log("!!! RESERVATIONS_SIMPLE.JS LOADED (MANUAL ID FORCED) !!!");
+console.log("!!! RESERVATIONS_SIMPLE.JS LOADED (MANUAL ID FORCED + ROOM EXTRA) !!!");
 
 const router = express.Router();
 const SPREADSHEET_ID = process.env.GOOGLE_SHEET_ID;
-const RANGE_RESERVATIONS = "reservations!A:U";
-const RANGE_CLIENTS = "clients!A:D";
+const RANGE_RESERVATIONS = "reservations!A:W"; // Extended to W for room_extra
+const RANGE_CLIENTS = "clients!A:C";
 const RANGE_HOTELS = "hotels!A:D";
 
 function calcStayNight(checkin, checkout) {
@@ -53,6 +53,9 @@ router.get("/", async (req, res) => {
         const data = rRows.map((row, index) => {
             const total = parseInt(row[13] || 0);
             const paid = parseInt(row[17] || 0);
+            // Cols V(21) and W(22) for Extra
+            const room_extra = row[21];
+            const room_extra_rate = row[22];
 
             return {
                 rowIndex: index + 2,
@@ -71,6 +74,8 @@ router.get("/", async (req, res) => {
                 room_double_rate: row[9],
                 room_triple_rate: row[10],
                 room_quad_rate: row[11],
+                room_extra,
+                room_extra_rate,
                 total_room: row[12],
                 total_amount: total,
                 deadline_payment: row[14],
@@ -118,6 +123,8 @@ router.get("/:no_rsv", async (req, res) => {
             room_double_rate: row[9],
             room_triple_rate: row[10],
             room_quad_rate: row[11],
+            room_extra: row[21],
+            room_extra_rate: row[22],
             total_room: row[12],
             total_amount: total.toLocaleString('en-US'),
             deadline_payment: row[14],
@@ -152,6 +159,8 @@ router.get("/:no_rsv/rooms", async (req, res) => {
         if (Number(row[6]) > 0) rooms.push({ id: 1, room_type: "Double Room", qty: row[6], rate: row[9], meal, total: Number(row[6]) * Number(row[9]) * staynight });
         if (Number(row[7]) > 0) rooms.push({ id: 2, room_type: "Triple Room", qty: row[7], rate: row[10], meal, total: Number(row[7]) * Number(row[10]) * staynight });
         if (Number(row[8]) > 0) rooms.push({ id: 3, room_type: "Quad Room", qty: row[8], rate: row[11], meal, total: Number(row[8]) * Number(row[11]) * staynight });
+        // Handle Extra
+        if (Number(row[21]) > 0) rooms.push({ id: 4, room_type: "Extra/Suite", qty: row[21], rate: row[22], meal, total: Number(row[21]) * Number(row[22]) * staynight });
 
         res.json(rooms);
     } catch (err) {
@@ -159,17 +168,17 @@ router.get("/:no_rsv/rooms", async (req, res) => {
     }
 });
 
-// CREATE RESERVATION (STRICT MANUAL ID)
+// CREATE RESERVATION
 router.post("/", async (req, res) => {
-    console.log("POST /reservations HIT (SIMPLE). Body:", req.body);
+    console.log("POST /reservations HIT (W/ EXTRA). Body:", req.body);
     try {
         const {
             no_rsv: input_no_rsv,
             id_client, id_hotel,
             checkin, checkout,
             meal,
-            room_double, room_triple, room_quad,
-            room_double_rate, room_triple_rate, room_quad_rate,
+            room_double, room_triple, room_quad, room_extra,
+            room_double_rate, room_triple_rate, room_quad_rate, room_extra_rate,
             deadline_payment, status_booking, status_payment,
         } = req.body;
 
@@ -187,25 +196,27 @@ router.post("/", async (req, res) => {
         const qtyDouble = Number(room_double) || 0;
         const qtyTriple = Number(room_triple) || 0;
         const qtyQuad = Number(room_quad) || 0;
+        const qtyExtra = Number(room_extra) || 0;
+
         const rateDouble = Number(room_double_rate) || 0;
         const rateTriple = Number(room_triple_rate) || 0;
         const rateQuad = Number(room_quad_rate) || 0;
+        const rateExtra = Number(room_extra_rate) || 0;
 
         const totalDouble = qtyDouble * rateDouble * staynight;
         const totalTriple = qtyTriple * rateTriple * staynight;
         const totalQuad = qtyQuad * rateQuad * staynight;
+        const totalExtra = qtyExtra * rateExtra * staynight;
 
-        const total_amount = totalDouble + totalTriple + totalQuad;
-        const total_room = qtyDouble + qtyTriple + qtyQuad;
+        const total_amount = totalDouble + totalTriple + totalQuad + totalExtra;
+        const total_room = qtyDouble + qtyTriple + qtyQuad + qtyExtra;
 
         const paid_amount = 0;
         const tag_status = 'new';
 
-        console.log("FINAL INSERTING ID:", final_no_rsv);
-
         await sheets.spreadsheets.values.append({
             spreadsheetId: SPREADSHEET_ID,
-            range: "reservations!A:U",
+            range: "reservations!A:W",
             valueInputOption: "USER_ENTERED",
             requestBody: {
                 values: [[
@@ -219,7 +230,8 @@ router.post("/", async (req, res) => {
                     paid_amount,
                     meal,
                     new Date().toISOString(),
-                    tag_status
+                    tag_status,
+                    qtyExtra, rateExtra
                 ]]
             }
         });
@@ -231,55 +243,148 @@ router.post("/", async (req, res) => {
     }
 });
 
+// FULL UPDATE (PUT)
+router.put("/:no_rsv", async (req, res) => {
+    try {
+        const { no_rsv } = req.params;
+        const body = req.body;
+
+        console.log("PUT /:no_rsv HIT. Body:", body);
+
+        // Fetch current to find row
+        const result = await sheets.spreadsheets.values.get({ spreadsheetId: SPREADSHEET_ID, range: "reservations!A:W" });
+        const rows = result.data.values || [];
+        const rowIndex = rows.findIndex(r => r[0] === no_rsv);
+
+        if (rowIndex === -1) return res.status(404).json({ message: "Reservation not found" });
+
+        // Use existing values if not provided, but mostly standard fields are passed
+        const currentRow = rows[rowIndex];
+        const actualRow = rowIndex + 1;
+
+        // Extract or fallback
+        // Format: [0:ID, 1:Client, 2:Hotel, 3:In, 4:Out, 5:Night, 6:D, 7:T, 8:Q, 9:DR, 10:TR, 11:QR, 12:TotRm, 13:TotAmt, 14:DL, 15:StatBook, 16:StatPay, 17:Paid, 18:Meal, 19:Date, 20:Tag, 21:Ex, 22:ExR]
+
+        // Note: For payment updates specifically, we might treat it differently, but here we assume full edit from Modal
+        const status_booking = body.status_booking || currentRow[15];
+        const status_payment = body.status_payment || currentRow[16];
+
+        // PAYMENT LOGIC: If form has `payment` (added amount), we add it to existing. 
+        // If it's a full edit, `data` comes with `payment` input usually as additional?
+        // The EditModal passes `payment` as ADDITIONAL payment.
+
+        let currentPaid = Number(currentRow[17] || 0);
+        if (body.payment) {
+            currentPaid += Number(body.payment);
+        }
+
+        // Room updates
+        const qD = body.room_double !== undefined ? (Number(body.room_double) || 0) : (Number(currentRow[6]) || 0);
+        const qT = body.room_triple !== undefined ? (Number(body.room_triple) || 0) : (Number(currentRow[7]) || 0);
+        const qQ = body.room_quad !== undefined ? (Number(body.room_quad) || 0) : (Number(currentRow[8]) || 0);
+        const qE = body.room_extra !== undefined ? (Number(body.room_extra) || 0) : (Number(currentRow[21]) || 0);
+
+        const rD = body.room_double_rate !== undefined ? (Number(body.room_double_rate) || 0) : (Number(currentRow[9]) || 0);
+        const rT = body.room_triple_rate !== undefined ? (Number(body.room_triple_rate) || 0) : (Number(currentRow[10]) || 0);
+        const rQ = body.room_quad_rate !== undefined ? (Number(body.room_quad_rate) || 0) : (Number(currentRow[11]) || 0);
+        const rE = body.room_extra_rate !== undefined ? (Number(body.room_extra_rate) || 0) : (Number(currentRow[22]) || 0);
+
+        // Staynight (recalc if dates changed? usually dates are read-only in simple edit, but let's see)
+        // EditModal DOES NOT allow date change visually in the code I saw? 
+        // Wait, EditModal code shows: Room Comp, Payment, Status. NO DATES.
+        // So staynight remains same.
+        const staynight = Number(currentRow[5]) || 0;
+
+        const totalD = qD * rD * staynight;
+        const totalT = qT * rT * staynight;
+        const totalQ = qQ * rQ * staynight;
+        const totalE = qE * rE * staynight;
+
+        const newTotalAmt = totalD + totalT + totalQ + totalE;
+        const newTotalRm = qD + qT + qQ + qE;
+
+        // Auto Status Payment update if fully paid
+        let finalStatPay = status_payment;
+        if (currentPaid >= newTotalAmt) finalStatPay = 'full_payment';
+
+        const meal = body.meal || currentRow[18];
+
+        // We need to update specific ranges.
+        // A:W. Row `actualRow`.
+        // We can just overwrite the whole row or specific blocks. To be safe, batch update.
+        // Mapped:
+        // G(6): qD, H(7): qT, I(8): qQ
+        // J(9): rD, K(10): rT, L(11): rQ
+        // M(12): TotRm, N(13): TotAmt
+        // P(15): StatBook, Q(16): StatPay, R(17): Paid, S(18): Meal
+        // U(20): Tag ('edited')
+        // V(21): Ex, W(22): ExR
+
+        const updates = [
+            { range: `reservations!G${actualRow}:I${actualRow}`, values: [[qD, qT, qQ]] },
+            { range: `reservations!J${actualRow}:L${actualRow}`, values: [[rD, rT, rQ]] },
+            { range: `reservations!M${actualRow}:N${actualRow}`, values: [[newTotalRm, newTotalAmt]] },
+            { range: `reservations!P${actualRow}:S${actualRow}`, values: [[status_booking, finalStatPay, currentPaid, meal]] },
+            { range: `reservations!U${actualRow}`, values: [['edited']] },
+            { range: `reservations!V${actualRow}:W${actualRow}`, values: [[qE, rE]] }
+        ];
+
+        await sheets.spreadsheets.values.batchUpdate({
+            spreadsheetId: SPREADSHEET_ID,
+            requestBody: {
+                data: updates,
+                valueInputOption: "USER_ENTERED"
+            }
+        });
+
+        res.json({ message: "Reservation updated successfully", no_rsv });
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // UPDATE PAYMENT
 router.put("/:no_rsv/payment", async (req, res) => {
+    // ... kept for backward compatibility if needed, but PUT /:no_rsv covers it ..
+    // For safety, let's keep it as is, or redirect logic.
+    // The previous implementation was fine.
     try {
         const { no_rsv } = req.params;
         const { status_booking, status_payment, payment } = req.body;
 
-        const result = await sheets.spreadsheets.values.get({
-            spreadsheetId: SPREADSHEET_ID,
-            range: "reservations!A:A"
-        });
+        const result = await sheets.spreadsheets.values.get({ spreadsheetId: SPREADSHEET_ID, range: "reservations!A:A" });
         const rows = result.data.values || [];
         const rowIndex = rows.findIndex(r => r[0] === no_rsv);
 
-        if (rowIndex === -1) return res.status(404).json({ message: "Reservation to update not found" });
-
+        if (rowIndex === -1) return res.status(404).json({ message: "Not found" });
         const actualRow = rowIndex + 1;
-        const dataRange = `reservations!N${actualRow}:R${actualRow}`;
-        const dataRes = await sheets.spreadsheets.values.get({
-            spreadsheetId: SPREADSHEET_ID,
-            range: dataRange
-        });
-        const currentData = dataRes.data.values ? dataRes.data.values[0] : [];
 
-        const total = Number(currentData[0] || 0);
-        const currentPaid = Number(currentData[4] || 0);
+        // Get current total/paid
+        const dataRes = await sheets.spreadsheets.values.get({ spreadsheetId: SPREADSHEET_ID, range: `reservations!N${actualRow}:R${actualRow}` });
+        const vals = dataRes.data.values ? dataRes.data.values[0] : [];
+        const total = Number(vals[0] || 0); // Col N
+        const currentPaid = Number(vals[4] || 0); // Col R
 
-        const newPayment = Number(payment || 0);
-        const finalPaid = currentPaid + newPayment;
-
-        let finalStatusPayment = status_payment;
-        if (finalPaid >= total) finalStatusPayment = "full_payment";
+        const finalPaid = currentPaid + Number(payment || 0);
+        let finalStatPay = status_payment;
+        if (finalPaid >= total) finalStatPay = "full_payment";
 
         await sheets.spreadsheets.values.batchUpdate({
             spreadsheetId: SPREADSHEET_ID,
             requestBody: {
                 data: [
                     { range: `reservations!P${actualRow}`, values: [[status_booking]] },
-                    { range: `reservations!Q${actualRow}`, values: [[finalStatusPayment]] },
+                    { range: `reservations!Q${actualRow}`, values: [[finalStatPay]] },
                     { range: `reservations!R${actualRow}`, values: [[finalPaid]] },
                     { range: `reservations!U${actualRow}`, values: [['edited']] }
                 ],
                 valueInputOption: "USER_ENTERED"
             }
         });
-
-        res.json({ message: "Payment updated", paid_amount: finalPaid, remaining: total - finalPaid });
-
+        res.json({ message: "Payment updated" });
     } catch (err) {
-        console.error(err);
         res.status(500).json({ error: err.message });
     }
 });
