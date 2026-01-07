@@ -4,6 +4,8 @@ import api from '../services/api';
 import Layout from '../layouts/DashboardLayout';
 import Button from '../components/Button';
 import Skeleton from '../components/Skeleton';
+import useTable from '../hooks/useTable';
+import TableControls from '../components/TableControls';
 import Tooltip from '../components/Tooltip';
 import { Edit2, Trash2, Eye, EyeOff, MapPin } from 'lucide-react';
 
@@ -21,6 +23,17 @@ export default function Hotels() {
     const [loading, setLoading] = useState(true);
     const [editId, setEditId] = useState(null);
     const [showDeleted, setShowDeleted] = useState(false);
+
+    // Integrate useTable
+    const {
+        data: processedHotels,
+        search, setSearch,
+        sort, setSort,
+        filters, setFilter
+    } = useTable({
+        data: showDeleted ? hotels : hotels.filter(h => h.tag_status !== 'delete'),
+        defaultSort: { key: 'nama_hotel', direction: 'asc' }
+    });
 
     const load = async () => {
         setLoading(true);
@@ -69,24 +82,15 @@ export default function Hotels() {
         setEditId(null);
     };
 
-    const makkahHotels = hotels.filter(h => h.city.toLowerCase() === 'makkah');
-    const madinahHotels = hotels.filter(h => h.city.toLowerCase() === 'madinah');
+    const makkahHotels = processedHotels.filter(h => h.city.toLowerCase() === 'makkah');
+    const madinahHotels = processedHotels.filter(h => h.city.toLowerCase() === 'madinah');
 
     // Helper for rendering tables
     const renderTable = (title, list) => {
-        const filteredList = showDeleted ? list : list.filter(h => h.tag_status !== 'delete');
-
         return (
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex-1 min-w-[300px] p-6 flex flex-col">
                 <div className="flex justify-between items-center mb-6">
                     <h3 className="font-bold text-lg text-textMain tracking-tight">{title}</h3>
-                    <button
-                        onClick={() => setShowDeleted(!showDeleted)}
-                        className={`p-2 rounded-full transition-all ${showDeleted ? 'bg-primary/10 text-primary' : 'text-textSub hover:bg-gray-50'}`}
-                        title={showDeleted ? "Hide Deleted" : "Show Deleted"}
-                    >
-                        {showDeleted ? <Eye size={16} /> : <EyeOff size={16} />}
-                    </button>
                 </div>
                 <div className="overflow-x-auto">
                     <table className="w-full min-w-max text-sm text-textMain border-collapse">
@@ -106,10 +110,10 @@ export default function Hotels() {
                                         </td>
                                     </tr>
                                 ))
-                            ) : filteredList.length === 0 ? (
+                            ) : list.length === 0 ? (
                                 <tr><td className="p-8 text-textSub italic text-sm text-center" colSpan="3">No hotels found.</td></tr>
                             ) : (
-                                filteredList.map(h => {
+                                list.map(h => {
                                     const isDeleted = h.tag_status === 'delete';
                                     return (
                                         <tr key={h.id_hotel} className={`transition-all border-b border-gray-50 last:border-0 ${isDeleted ? 'opacity-50 grayscale' : 'hover:bg-gray-50'}`}>
@@ -212,6 +216,26 @@ export default function Hotels() {
                         )}
                     </div>
                 </div>
+            </div>
+
+            <div className="mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div className="flex-1 w-full md:w-auto">
+                    <TableControls
+                        search={search} setSearch={setSearch}
+                        sort={sort} setSort={setSort}
+                        filters={filters} setFilter={setFilter}
+                        sortOptions={[
+                            { key: 'nama_hotel', label: 'Hotel Name' }
+                        ]}
+                    />
+                </div>
+
+                <button
+                    onClick={() => setShowDeleted(!showDeleted)}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wide transition-all ${showDeleted ? 'bg-indigo-50 text-indigo-600' : 'bg-white text-textSub hover:bg-gray-50 border border-gray-200'}`}
+                >
+                    {showDeleted ? <><Eye size={14} /> Hide Deleted</> : <><EyeOff size={14} /> Show Deleted</>}
+                </button>
             </div>
 
             <div className="flex flex-col md:flex-row gap-8 w-full items-start">

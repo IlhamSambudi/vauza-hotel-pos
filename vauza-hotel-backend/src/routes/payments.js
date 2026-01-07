@@ -286,4 +286,34 @@ router.delete("/:id_payment", async (req, res) => {
     }
 });
 
+// PATCH /payments/:id_payment/status - Update Payment Status
+router.patch("/:id_payment/status", async (req, res) => {
+    try {
+        const { id_payment } = req.params;
+        const { tag_status } = req.body;
+
+        if (!tag_status) return res.status(400).json({ message: "Status required" });
+
+        const result = await sheets.spreadsheets.values.get({ spreadsheetId: SPREADSHEET_ID, range: "payments!A:A" });
+        const rows = result.data.values || [];
+        const rowIndex = rows.findIndex(r => r[0] && r[0].toString().trim() === id_payment.toString().trim());
+
+        if (rowIndex === -1) return res.status(404).json({ message: "Payment not found" });
+
+        const actualRow = rowIndex + 1;
+
+        await sheets.spreadsheets.values.update({
+            spreadsheetId: SPREADSHEET_ID,
+            range: `payments!G${actualRow}`,
+            valueInputOption: "USER_ENTERED",
+            requestBody: { values: [[tag_status]] }
+        });
+
+        res.json({ message: "Status updated", tag_status });
+    } catch (err) {
+        console.error("Error updating status:", err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
 export default router;

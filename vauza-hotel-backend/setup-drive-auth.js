@@ -30,6 +30,7 @@ const authUrl = oauth2Client.generateAuthUrl({
 
 console.log('Authorize this app by visiting this url:');
 console.log(authUrl);
+fs.writeFileSync('auth_url.txt', authUrl);
 
 const rl = readline.createInterface({
     input: process.stdin,

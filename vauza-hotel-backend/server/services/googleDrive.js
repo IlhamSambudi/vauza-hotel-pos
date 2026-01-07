@@ -30,13 +30,13 @@ const drive = google.drive({ version: "v3", auth });
  * @param {Object} fileObject Multer file object
  * @returns {Promise<string>} Web View Link
  */
-export async function uploadFile(fileObject, customName = null) {
+export async function uploadFile(fileObject, customName = null, folderId = null) {
     try {
         const response = await drive.files.create({
             requestBody: {
                 name: customName || `PAYMENT-${Date.now()}-${fileObject.originalname}`,
                 mimeType: fileObject.mimetype,
-                parents: ['1Ri4Lvt8-xa_p40UCWYK7BQK_HHFVrS7t'] // Upload to shared folder
+                parents: [folderId || '1Ri4Lvt8-xa_p40UCWYK7BQK_HHFVrS7t'] // Upload to shared folder or custom folder
             },
             media: {
                 mimeType: fileObject.mimetype,

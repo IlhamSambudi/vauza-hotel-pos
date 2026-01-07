@@ -1,5 +1,6 @@
 import { NavLink } from "react-router-dom";
-import { LayoutDashboard, Users, Building, CalendarDays, CreditCard, ShieldCheck, ClipboardList, LogOut } from "lucide-react";
+import { LayoutDashboard, Users, Building, CalendarDays, CreditCard, LogOut, ClipboardList, BookOpen, Briefcase, ShieldCheck } from 'lucide-react';
+import authService from '../services/auth.service';
 
 const menu = [
     { name: "Dashboard", path: "/", icon: LayoutDashboard },
@@ -8,7 +9,8 @@ const menu = [
     { name: "Reservations", path: "/reservations", icon: CalendarDays },
     { name: "Payments", path: "/payments", icon: CreditCard },
     { name: "Overview Order", path: "/overview-order", icon: ClipboardList },
-    { name: "Nusuk Agreement", path: "/nusuk-agreement", icon: ShieldCheck },
+    { name: "Nusuk Agreement", path: "/nusuk-agreement", icon: BookOpen },
+    { name: "Supply Hotel", path: "/supply", icon: Briefcase },
 ];
 
 export default function Sidebar() {

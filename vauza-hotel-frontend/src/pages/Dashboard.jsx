@@ -3,7 +3,7 @@ import authService from '../services/auth.service';
 import DashboardLayout from '../layouts/DashboardLayout';
 import api from '../services/api';
 import { formatDate } from '../utils/formatDate';
-import { Users, Building, CalendarDays, Wallet, BadgeCheck, Eye, EyeOff, TriangleAlert, Clock } from 'lucide-react';
+import { Users, Building, CalendarDays, Wallet, BadgeCheck, Eye, EyeOff, TriangleAlert, Clock, ScrollText, FileSpreadsheet } from 'lucide-react';
 import StatCard from '../components/StatCard';
 import StatusBadge from '../components/StatusBadge';
 import RecentTable from '../components/RecentTable';
@@ -12,9 +12,9 @@ const Dashboard = () => {
     const user = authService.getCurrentUser();
     const [currency, setCurrency] = useState('IDR');
 
-    // ... stats state loading logic ... (Keep unchanged mostly)
     const [stats, setStats] = useState({
         clients: 0, hotels: 0, reservations: 0, revenue: 0, revenueSar: 0,
+        nusuk: 0, supply: 0, // Added new stats
         tagNew: 0, tagEdited: 0, tagDeleted: 0
     });
 
@@ -28,17 +28,21 @@ const Dashboard = () => {
     useEffect(() => {
         const loadStats = async () => {
             try {
-                const [c, h, r, p] = await Promise.all([
+                const [c, h, r, p, n, s] = await Promise.all([
                     api.get('/clients'),
                     api.get('/hotels'),
                     api.get('/reservations'),
-                    api.get('/payments')
+                    api.get('/payments'),
+                    api.get('/nusuk'), // Fetch Nusuk
+                    api.get('/supply')  // Fetch Supply
                 ]);
 
                 const clients = c.data || [];
                 const hotels = h.data || [];
                 const reservations = r.data || [];
                 const payments = p.data || [];
+                const nusukBy = n.data || [];
+                const supply = s.data || [];
 
                 const activePayments = payments.filter(p => p.tag_status !== 'delete');
                 const totalRevenue = activePayments.reduce((sum, pay) => sum + (Number(pay.amount) || 0), 0);
@@ -100,26 +104,40 @@ const Dashboard = () => {
 
                 setAlerts(processedAlerts);
 
-                const allData = [...clients, ...hotels, ...reservations, ...payments];
-                const countTag = (tag) => allData.filter(item => item.tag_status === tag).length;
+                const countTag = (tag) => {
+                    // Combine main lists for tag counting if desired, or keep specific.
+                    // Here counting everything might be noisy. Sticking to old logic or just total counts per category is better.
+                    // For now, let's keep it simple and just count tags from reservations/clients/hotels/payments to detect activity?
+                    // Actually, the original code combined ALL. Let's replicate that + nusuk/supply.
+                    const allData = [...clients, ...hotels, ...reservations, ...payments, ...nusukBy, ...supply];
+                    return allData.filter(item => item.tag_status === tag).length;
+                };
 
                 setStats({
-                    clients: clients.length,
-                    hotels: hotels.length,
-                    reservations: reservations.length,
+                    clients: clients.filter(i => i.tag_status !== 'delete').length,
+                    hotels: hotels.filter(i => i.tag_status !== 'delete').length,
+                    reservations: reservations.filter(i => i.tag_status !== 'delete').length,
                     revenue: totalRevenue,
                     revenueSar: totalRevenueSar,
+                    nusuk: nusukBy.length,
+                    supply: supply.length,
                     tagNew: countTag('new'),
                     tagEdited: countTag('edited'),
                     tagDeleted: countTag('delete')
                 });
 
-                const getRecent = (arr) => arr.slice(-5).reverse();
+                const getRecent = (arr) => arr.filter(i => showDeleted || i.tag_status !== 'delete').slice(-5).reverse();
+                // Note: Original code disregarded delete status for "Recent" list unless toggled visually?
+                // Actually the original code just sliced the array.
+                // Let's stick to slicing raw array but reversed to show latest.
+                // But typically "Recent" should imply "Created Recently". Since IDs are auto-inc or array order is chronological:
+                const getRecentSimple = (arr) => arr.slice().reverse().slice(0, 5);
+
                 setRecents({
-                    clients: getRecent(clients),
-                    hotels: getRecent(hotels),
-                    reservations: getRecent(reservations),
-                    payments: getRecent(payments)
+                    clients: getRecentSimple(clients),
+                    hotels: getRecentSimple(hotels),
+                    reservations: getRecentSimple(reservations),
+                    payments: getRecentSimple(payments)
                 });
 
             } catch (e) {
@@ -127,7 +145,7 @@ const Dashboard = () => {
             }
         };
         loadStats();
-    }, []);
+    }, [showDeleted]); // Re-run if showDeleted changes? No, showDeleted only affects visual filter in table below, not stats load.
 
     const toggleCurrency = () => {
         setCurrency(curr => curr === 'IDR' ? 'SAR' : 'IDR');
@@ -235,12 +253,14 @@ const Dashboard = () => {
             )}
 
             {/* STATS GRID */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
                 <StatCard title="Total Clients" value={stats.clients} icon={Users} />
                 <StatCard title="Partner Hotels" value={stats.hotels} icon={Building} />
-                <StatCard title="Active Reservations" value={stats.reservations} icon={CalendarDays} />
+                <StatCard title="Active RSV" value={stats.reservations} icon={CalendarDays} />
+                <StatCard title="Nusuk Agmt" value={stats.nusuk} icon={ScrollText} />
+                <StatCard title="Supply CL" value={stats.supply} icon={FileSpreadsheet} />
                 <StatCard
-                    title={`Total Revenue (${currency})`}
+                    title={`Revenue (${currency})`}
                     value={currency === 'IDR' ? stats.revenue : stats.revenueSar}
                     icon={BadgeCheck}
                     isCurrency

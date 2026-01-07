@@ -9,6 +9,7 @@ const StatusBadge = ({ status }) => {
         case 'paid':
         case 'confirmed':
         case 'full_payment':
+        case 'payment_done':
             colorClass = 'bg-green-100 text-green-700';
             break;
         case 'pending':

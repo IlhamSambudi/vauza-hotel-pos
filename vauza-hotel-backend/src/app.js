@@ -13,6 +13,7 @@ import reservationRoutes from './routes/reservations_SIMPLE.js';
 import paymentRoutes from './routes/payments.js';
 import testSheetsRoutes from './routes/testSheets.js';
 import nusukRoutes from './routes/nusuk.routes.js';
+import supplyRoutes from './routes/supply.js';
 
 const app = express();
 
@@ -35,5 +36,6 @@ app.use('/reservations', reservationRoutes);
 app.use('/payments', paymentRoutes);
 app.use('/sheet-test', testSheetsRoutes);
 app.use('/nusuk', nusukRoutes);
+app.use('/supply', supplyRoutes);
 
 export default app;

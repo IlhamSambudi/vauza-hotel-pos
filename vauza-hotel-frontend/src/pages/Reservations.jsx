@@ -7,6 +7,8 @@ import EditModal from '../components/EditReservationModal';
 import Layout from '../layouts/DashboardLayout';
 import Button from '../components/Button';
 import Skeleton from '../components/Skeleton';
+import useTable from '../hooks/useTable';
+import TableControls from '../components/TableControls';
 import Tooltip from '../components/Tooltip';
 import { Edit2, Printer, Trash2, Eye, EyeOff, Plus, Calendar, User, Building, CreditCard } from 'lucide-react';
 
@@ -131,7 +133,17 @@ export default function Reservations() {
 
     const labelClass = "text-xs font-semibold text-textSub mb-2 block uppercase tracking-wide ml-1";
     const inputClass = "w-full bg-white border border-gray-200 rounded-lg px-4 py-3 text-textMain focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all placeholder-gray-400 font-medium";
-    const filteredReservations = showDeleted ? reservations : reservations.filter(r => r.tag_status !== 'delete');
+
+    // Integrate useTable
+    const {
+        data: processedReservations,
+        search, setSearch,
+        sort, setSort,
+        filters, setFilter
+    } = useTable({
+        data: showDeleted ? reservations : reservations.filter(r => r.tag_status !== 'delete'),
+        defaultSort: { key: 'no_rsv', direction: 'desc' }
+    });
 
     return (
         <Layout title="Reservations">
@@ -317,18 +329,43 @@ export default function Reservations() {
                 </div>
             )}
 
+            <TableControls
+                search={search} setSearch={setSearch}
+                sort={sort} setSort={setSort}
+                filters={filters} setFilter={setFilter}
+                sortOptions={[
+                    { key: 'no_rsv', label: 'RSV No' },
+                    { key: 'checkin', label: 'Check-in Date' },
+                    { key: 'nama_client', label: 'Client Name' },
+                    { key: 'nama_hotel', label: 'Hotel Name' }
+                ]}
+                filterOptions={[
+                    {
+                        key: 'status_payment',
+                        label: 'Payment',
+                        options: [
+                            { value: 'unpaid', label: 'Unpaid' },
+                            { value: 'dp_30', label: 'DP 30%' },
+                            { value: 'partial', label: 'Partial' },
+                            { value: 'full_payment', label: 'Full Payment' }
+                        ]
+                    }
+                ]}
+            />
+
             {/* TABLE */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 w-full overflow-hidden flex flex-col h-[calc(100vh-200px)]">
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 w-full overflow-hidden flex flex-col h-[calc(100vh-280px)]">
                 <div className="overflow-auto flex-1 custom-scrollbar">
                     <table className="w-full text-sm text-left border-collapse">
                         <thead className="sticky top-0 z-20 bg-white shadow-sm">
                             <tr>
-                                <th className="py-4 px-6 font-semibold uppercase text-[10px] tracking-wider text-textSub border-b border-gray-100">RSV #</th>
+                                <th className="py-4 px-6 font-semibold uppercase text-[10px] tracking-wider text-textSub border-b border-gray-100">No RSV</th>
                                 <th className="py-4 px-6 font-semibold uppercase text-[10px] tracking-wider text-textSub border-b border-gray-100">Client</th>
                                 <th className="py-4 px-6 font-semibold uppercase text-[10px] tracking-wider text-textSub border-b border-gray-100">Hotel</th>
                                 <th className="py-4 px-6 font-semibold uppercase text-[10px] tracking-wider text-textSub border-b border-gray-100">Stay Dates</th>
-                                <th className="py-4 px-6 font-semibold uppercase text-[10px] tracking-wider text-textSub text-right border-b border-gray-100">Amount (SAR)</th>
+                                <th className="py-4 px-6 font-semibold uppercase text-[10px] tracking-wider text-textSub border-b border-gray-100">Room Type</th>
                                 <th className="py-4 px-6 font-semibold uppercase text-[10px] tracking-wider text-textSub border-b border-gray-100">Meal</th>
+                                <th className="py-4 px-6 font-semibold uppercase text-[10px] tracking-wider text-textSub text-right border-b border-gray-100">Amount (SAR)</th>
                                 <th className="py-4 px-6 font-semibold uppercase text-[10px] tracking-wider text-textSub text-right border-b border-gray-100">Paid (SAR)</th>
                                 <th className="py-4 px-6 font-semibold uppercase text-[10px] tracking-wider text-textSub text-center border-b border-gray-100">Booking</th>
                                 <th className="py-4 px-6 font-semibold uppercase text-[10px] tracking-wider text-textSub text-center border-b border-gray-100">Payment</th>
@@ -340,13 +377,21 @@ export default function Reservations() {
                             {loading ? (
                                 Array(5).fill(0).map((_, i) => (
                                     <tr key={i}>
-                                        <td colSpan="11" className="p-6">
+                                        <td colSpan="12" className="p-6">
                                             <Skeleton className="h-8 w-full" />
                                         </td>
                                     </tr>
                                 ))
-                            ) : filteredReservations.map(r => {
+                            ) : processedReservations.map(r => {
                                 const isDeleted = r.tag_status === 'delete';
+                                // Room Type Aggregation
+                                const roomTypes = [];
+                                if (r.room_double > 0) roomTypes.push(`Dbl:${r.room_double}`);
+                                if (r.room_triple > 0) roomTypes.push(`Trpl:${r.room_triple}`);
+                                if (r.room_quad > 0) roomTypes.push(`Quad:${r.room_quad}`);
+                                if (r.room_extra > 0) roomTypes.push(`Ext:${r.room_extra}`);
+                                const roomTypeStr = roomTypes.join(', ');
+
                                 return (
                                     <tr key={r.no_rsv} className={`group hover:bg-gray-50 transition-colors ${isDeleted ? 'opacity-50 grayscale bg-gray-50' : ''}`}>
                                         <td className="px-6 py-4">
@@ -370,11 +415,14 @@ export default function Reservations() {
                                                 </div>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4 text-right">
-                                            <span className="font-mono font-bold text-textMain">{Number(r.total_amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                                        <td className="px-6 py-4">
+                                            <span className="text-xs font-medium text-textSub bg-gray-50 px-2 py-1 rounded inline-block">{roomTypeStr || "-"}</span>
                                         </td>
                                         <td className="px-6 py-4">
                                             <span className="text-xs font-medium text-textSub bg-gray-50 px-2 py-1 rounded inline-block">{r.meal}</span>
+                                        </td>
+                                        <td className="px-6 py-4 text-right">
+                                            <span className="font-mono font-bold text-textMain">{Number(r.total_amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                                         </td>
                                         <td className="px-6 py-4 text-right">
                                             <span className="font-mono text-textSub">{Number(r.paid_amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>

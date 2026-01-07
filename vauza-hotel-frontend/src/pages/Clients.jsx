@@ -4,8 +4,10 @@ import api from "../services/api";
 import Layout from "../layouts/DashboardLayout";
 import Button from "../components/Button";
 import Skeleton from "../components/Skeleton";
+import useTable from '../hooks/useTable';
+import TableControls from '../components/TableControls';
 import Tooltip from "../components/Tooltip";
-import { Edit2, Trash2, Plus } from 'lucide-react';
+import { Edit2, Trash2, Plus, Eye, EyeOff } from 'lucide-react';
 
 const StatusBadge = ({ status }) => {
     if (status === 'new') return <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700 uppercase tracking-wide">NEW</span>;
@@ -19,6 +21,18 @@ export default function Clients() {
     const [name, setName] = useState("");
     const [loading, setLoading] = useState(true);
     const [editId, setEditId] = useState(null);
+    const [showDeleted, setShowDeleted] = useState(false);
+
+    // Integrate useTable
+    const {
+        data: processedClients,
+        search, setSearch,
+        sort, setSort,
+        filters, setFilter
+    } = useTable({
+        data: showDeleted ? clients : clients.filter(c => c.tag_status !== 'delete'),
+        defaultSort: { key: 'nama_client', direction: 'asc' }
+    });
 
     const load = async () => {
         setLoading(true);
@@ -94,8 +108,28 @@ export default function Clients() {
                 </div>
             </div>
 
+            <div className="mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div className="flex-1 w-full md:w-auto">
+                    <TableControls
+                        search={search} setSearch={setSearch}
+                        sort={sort} setSort={setSort}
+                        filters={filters} setFilter={setFilter}
+                        sortOptions={[
+                            { key: 'nama_client', label: 'Client Name' }
+                        ]}
+                    />
+                </div>
+
+                <button
+                    onClick={() => setShowDeleted(!showDeleted)}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wide transition-all ${showDeleted ? 'bg-indigo-50 text-indigo-600' : 'bg-white text-textSub hover:bg-gray-50 border border-gray-200'}`}
+                >
+                    {showDeleted ? <><Eye size={14} /> Hide Deleted</> : <><EyeOff size={14} /> Show Deleted</>}
+                </button>
+            </div>
+
             {/* Table */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 flex flex-col h-[calc(100vh-320px)] overflow-hidden">
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 flex flex-col h-[calc(100vh-420px)] overflow-hidden">
                 <div className="overflow-auto flex-1 custom-scrollbar">
                     <table className="w-full text-sm text-left border-collapse">
                         <thead className="sticky top-0 z-10 bg-white shadow-sm">
@@ -114,7 +148,7 @@ export default function Clients() {
                                         </td>
                                     </tr>
                                 ))
-                            ) : clients.map(c => {
+                            ) : processedClients.map(c => {
                                 const isDeleted = c.tag_status === 'delete';
                                 return (
                                     <tr

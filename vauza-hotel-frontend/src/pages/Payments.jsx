@@ -4,13 +4,16 @@ import api from '../services/api';
 import Layout from '../layouts/DashboardLayout';
 import Button from '../components/Button';
 import Skeleton from '../components/Skeleton';
+import useTable from '../hooks/useTable';
+import TableControls from '../components/TableControls';
 import Tooltip from '../components/Tooltip';
-import { Plus, Eye, EyeOff, Trash2, ExternalLink, Calendar, CreditCard, DollarSign, FileText, User, Printer } from 'lucide-react';
+import { Plus, Eye, EyeOff, Trash2, ExternalLink, Calendar, CreditCard, DollarSign, FileText, User, Printer, CheckCircle } from 'lucide-react';
 
 const StatusBadge = ({ status }) => {
     if (status === 'new') return <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700 uppercase tracking-wide">NEW</span>;
     if (status === 'edited') return <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700 uppercase tracking-wide">EDITED</span>;
     if (status === 'delete') return <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-red-100 text-red-600 uppercase tracking-wide">DELETED</span>;
+    if (status === 'payment done') return <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700 uppercase tracking-wide">PAYMENT DONE</span>;
     return null;
 };
 
@@ -93,7 +96,16 @@ export default function Payments() {
     const labelClass = "text-[10px] font-bold text-textSub mb-2 block uppercase tracking-wide ml-1";
     const inputClass = "w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-textMain focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all placeholder-gray-400 font-medium";
 
-    const filteredPayments = showDeleted ? payments : payments.filter(p => p.tag_status !== 'delete');
+    // Integrate useTable
+    const {
+        data: processedPayments,
+        search, setSearch,
+        sort, setSort,
+        filters, setFilter
+    } = useTable({
+        data: showDeleted ? payments : payments.filter(p => p.tag_status !== 'delete'),
+        defaultSort: { key: 'date', direction: 'desc' }
+    });
 
     return (
         <Layout title="Payments & Bukti Transfer">
@@ -227,7 +239,19 @@ export default function Payments() {
                 </div>
             )}
 
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 w-full overflow-hidden flex flex-col h-[calc(100vh-200px)]">
+            <TableControls
+                search={search} setSearch={setSearch}
+                sort={sort} setSort={setSort}
+                filters={filters} setFilter={setFilter}
+                sortOptions={[
+                    { key: 'date', label: 'Date' },
+                    { key: 'nama_client', label: 'Client Name' },
+                    { key: 'amount', label: 'Amount (IDR)' }
+                ]}
+                filterOptions={[]}
+            />
+
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 w-full overflow-hidden flex flex-col h-[calc(100vh-280px)]">
                 <div className="overflow-auto flex-1 custom-scrollbar">
                     <table className="w-full min-w-max text-sm text-textMain border-collapse">
                         <thead className="sticky top-0 z-20 bg-white shadow-sm">
@@ -252,7 +276,7 @@ export default function Payments() {
                                         </td>
                                     </tr>
                                 ))
-                            ) : filteredPayments.map(p => {
+                            ) : processedPayments.map(p => {
                                 const isDeleted = p.tag_status === 'delete';
                                 return (
                                     <tr key={p.id_payment} className={`group hover:bg-gray-50 transition-colors ${isDeleted ? 'opacity-50 grayscale bg-gray-50' : ''}`}>
@@ -291,6 +315,26 @@ export default function Payments() {
                                                         <Printer size={16} strokeWidth={2} />
                                                     </a>
                                                 </Tooltip>
+                                                {!isDeleted && p.tag_status === 'new' && (
+                                                    <Tooltip text="Mark Payment Done">
+                                                        <button
+                                                            onClick={async () => {
+                                                                if (window.confirm(`Mark this payment as done?`)) {
+                                                                    try {
+                                                                        await api.patch(`/payments/${p.id_payment}/status`, { tag_status: 'payment done' });
+                                                                        toast.success("Payment marked as done");
+                                                                        load();
+                                                                    } catch (e) {
+                                                                        toast.error("Failed to update status");
+                                                                    }
+                                                                }
+                                                            }}
+                                                            className="p-2 rounded-full text-emerald-600 hover:bg-emerald-50 transition-colors"
+                                                        >
+                                                            <CheckCircle size={16} strokeWidth={2} />
+                                                        </button>
+                                                    </Tooltip>
+                                                )}
                                                 {!isDeleted && (
                                                     <Tooltip text="Delete">
                                                         <button

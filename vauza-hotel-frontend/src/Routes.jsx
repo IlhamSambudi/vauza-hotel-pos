@@ -10,6 +10,7 @@ import PaymentReceipt from './pages/PaymentReceipt';
 import OverviewHotelOrder from './pages/OverviewHotelOrder';
 import OverviewClientPrint from './pages/OverviewClientPrint';
 import NusukAgreement from './pages/NusukAgreement';
+import Supply from './pages/Supply';
 
 const ProtectedRoute = ({ children }) => {
     const token = localStorage.getItem('token');
@@ -41,6 +42,7 @@ export default function Routes() {
             <Route path="/overview-order" element={<ProtectedRoute><OverviewHotelOrder /></ProtectedRoute>} />
             <Route path="/overview-order/print/:id_client" element={<ProtectedRoute><OverviewClientPrint /></ProtectedRoute>} />
             <Route path="/nusuk-agreement" element={<ProtectedRoute><NusukAgreement /></ProtectedRoute>} />
+            <Route path="/supply" element={<ProtectedRoute><Supply /></ProtectedRoute>} />
 
             <Route path="*" element={<Navigate to="/login" />} />
         </Switch>
