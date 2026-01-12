@@ -22,7 +22,7 @@ export default function Sidebar() {
                 </div>
                 <div>
                     <h1 className="text-xl font-bold text-textMain tracking-tight leading-none">Vauza<span className="text-primary">Hotel</span></h1>
-                    <span className="text-[10px] font-semibold text-textSub tracking-wider uppercase">Enterprise</span>
+                    <span className="text-[10px] font-semibold text-textSub tracking-wider uppercase">Management</span>
                 </div>
             </div>
 
