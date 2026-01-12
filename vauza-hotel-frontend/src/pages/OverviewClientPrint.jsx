@@ -17,8 +17,15 @@ export default function OverviewClientPrint() {
             const clientRes = allRes.filter(r => String(r.id_client) === String(id_client));
 
             // Sort by checkin date descending or ascending? Usually ascending for order history.
-            // Let's sort by Checkin Date Ascending
-            clientRes.sort((a, b) => new Date(a.checkin) - new Date(b.checkin));
+            // Sort by checkin date: Earliest to Latest (Ascending)
+            clientRes.sort((a, b) => {
+                const dateA = new Date(a.checkin);
+                const dateB = new Date(b.checkin);
+                // Handle invalid dates safely
+                if (isNaN(dateA.getTime())) return 1;
+                if (isNaN(dateB.getTime())) return -1;
+                return dateA - dateB;
+            });
 
             setReservations(clientRes);
             if (clientRes.length > 0) {
