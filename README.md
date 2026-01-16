@@ -1,24 +1,111 @@
-# Vauza Hotel POS
+# Vauza Hotel POS - System v2.0
 
-A comprehensive Hotel Point of Sale and Management System designed for simplified hotel operations, reservation tracking, payment management, and supply chain coordination.
+![Version](https://img.shields.io/badge/version-2.0-blue.svg)
+![Status](https://img.shields.io/badge/status-operational-success.svg)
+![Tech](https://img.shields.io/badge/stack-MERN%20Lite-orange.svg)
+
+A comprehensive, modern Point of Sale (POS) and Management System developed for Vauza Tamma Abadi. Designed to streamline hotel operations, handle reservations, manage payments, and ensure compliance with Nusuk regulations.
+
+**Version 2.0 Update:** Features a completely redesigned "Slate" Design System for a premium, clean, and professional user experience, along with enhanced operational workflows.
+
+---
+
+## 📚 Documentation Resources
+
+- **[📖 User Documentation](documentation.md)**: Full guide on how to use every feature (Reservations, Payments, Printing, etc.).
+- **[🔄 Business Process](business_process.md)**: End-to-end workflow diagrams (Swimlane) and logic explanations.
+
+---
 
 ## 🚀 Tech Stack
 
 ### Frontend
 - **Framework:** [React](https://react.dev/) (Vite)
-- **Styling:** [Tailwind CSS](https://tailwindcss.com/)
+- **Design System:** Custom "Slate" Theme (Tailwind CSS)
 - **Icons:** [Lucide React](https://lucide.dev/)
-- **Components:** Custom reusable components (`Button`, `TableControls`, `StatusBadge`, `Tooltip`)
-- **State Management:** React Hooks (`useState`, `useEffect`, Custom Hooks like `useTable`)
-- **HTTP Client:** Axios
+- **Animation:** CSS Transitions & Glassmorphism effects
+- **State Management:** React Hooks (`useState`, `useEffect`, Custom `useTable`)
+- **HTTP Client:** Axios (Interceptors for Auth)
 
 ### Backend
 - **Runtime:** [Node.js](https://nodejs.org/)
 - **Framework:** [Express.js](https://expressjs.com/)
-- **Database:** Google Sheets API (Acts as the primary database)
-- **File Storage:** Google Drive API (For storing Receipts and Confirmation Letters)
-- **Authentication:** JWT (JSON Web Tokens)
-- **Environment:** Dotenv
+- **Database:** Google Sheets API (Server-side relational mapping)
+- **Storage:** Google Drive API (Secure file storage for Receipts/CLs)
+- **Auth:** JWT (JSON Web Tokens) with Secure HTTP-only cookies
+
+---
+
+## ✨ Key Features (v2.0)
+
+### 1. 📊 Modern Dashboard
+- **Smart Alerts:** Auto-detection of overdue payments types (Red/Amber).
+- **Live Stats:** Real-time metrics for Revenue (IDR/SAR), Active Reservations, and Clients.
+- **Recent Activity:** Quick view of the latest 5 records for all modules.
+
+### 2. 🏨 Reservation Management
+- **Smart Booking Engine:** Handles Room Types (Double, Triple, Quad), Rates, and Meal Plans.
+- **Auto-Calculations:** Automatically computes Stay Nights and Total Amounts based on dates and rates.
+- **Status Workflow:** `New` -> `Tentative` -> `Definite` -> `Paid` with visual pill badges.
+- **Dynamic Editing:** Edit dates, status (Amend/Upgraded), or notes with instant system recalculations.
+
+### 3. 💳 Payment Processing
+- **Multi-Currency:** Supports IDR and SAR payments.
+- **Proof of Payment:** Upload and store receipts securely in Google Drive.
+- **Receipt Generation:** One-click PDF generation of official Payment Receipts.
+
+### 4. 🔗 Supply Chain Management
+- **Vendor Tracking:** Manage Supplier Confirmation Letters (CL).
+- **Cost Analysis:** Track Buying Rates vs Selling Rates.
+- **Document Management:** Upload and view vendor PDFs directly from the app.
+
+### 5. 🕌 Regulatory Compliance (Nusuk)
+- **Agreement Tracking:** Monitor Nusuk permit numbers and approval statuses.
+- **Real-time Updates:** Instant status changes (Waiting, Approved, Rejected).
+
+### 6. 🖨️ Documentation & Printing
+- **Confirmation Letters:** Generate professional Booking Confirmations for clients/hotels.
+- **Payment Receipts:** Official transaction proofs.
+- **Print-Optimized:** Custom CSS media queries for perfect A4 printing.
+
+---
+
+## 🛠️ Installation & Setup
+
+### Prerequisites
+- Node.js (v18+ recommended)
+- npm (Node Package Manager)
+- Google Cloud Service Account Credentials (`google-service-account.json`)
+
+### 1. Backend Setup
+```bash
+cd vauza-hotel-backend
+npm install
+```
+**Environment Variables (.env):**
+```env
+PORT=3000
+JWT_SECRET=your_secure_secret
+GOOGLE_SHEET_ID=your_sheet_id
+GOOGLE_CLIENT_ID=oauth_client_id
+GOOGLE_CLIENT_SECRET=oauth_client_secret
+GOOGLE_REFRESH_TOKEN=oauth_refresh_token
+```
+**Start Server:**
+```bash
+npm start
+```
+
+### 2. Frontend Setup
+```bash
+cd vauza-hotel-frontend
+npm install
+```
+**Start App:**
+```bash
+npm run dev
+```
+Open [http://localhost:5173](http://localhost:5173) to view the app.
 
 ---
 
@@ -26,143 +113,31 @@ A comprehensive Hotel Point of Sale and Management System designed for simplifie
 
 ```bash
 vauza-hotel-pos/
-├── vauza-hotel-frontend/     # React Application
+├── vauza-hotel-frontend/     # React Application (Vite)
 │   ├── src/
-│   │   ├── pages/            # Core Modules (Dashboard, Reservations, Payments, Supply...)
-│   │   ├── components/       # Shared UI Components
-│   │   ├── services/         # API Integration
-│   │   └── hooks/            # Custom Logic (useTable)
-│   └── package.json
+│   │   ├── pages/            # Modules (Dashboard, Reservations, etc.)
+│   │   ├── components/       # UI Library (StatCard, StatusBadge, etc.)
+│   │   ├── services/         # API Layer (Axios)
+│   │   ├── layouts/          # Dashboard & Print Layouts
+│   │   └── assets/           # Images & Logos
+│   └── index.css             # GLOBAL TAILWIND & THEME STYLES
 │
 └── vauza-hotel-backend/      # Node.js API Server
     ├── src/
-    │   ├── routes/           # API Endpoints (supply.js, payments.js, etc.)
-    │   └── server.js         # Entry Point
-    ├── server/
-    │   └── services/         # Integrations (googleDrive.js)
-    ├── .env                  # Environment Variables (Secrets)
-    └── package.json
+    │   ├── routes/           # REST API Controllers
+    │   ├── server.js         # App Entry Point & Middleware
+    │   └── services/         # Google APIs (Drive, Sheets)
+    └── credentials/          # Service Account Keys (Ignored by Git)
 ```
 
 ---
 
-## ✨ Key Features
-
-### 1. Dashboard
-- Real-time overview of hotel metrics.
-- **Payment Reminders**: Auto-alerts for payments due within 4 days or 15 days before check-in.
-- **Stats**: Total Nusuk Agreements and Active Supply CLs.
-
-### 2. Reservations
-- Manage guest bookings with details like Room Types (Double, Triple, Quad).
-- Auto-calculation of total amounts based on rates.
-- Generate **Confirmation Letters (CL)** automatically.
-
-### 3. Payments
-- Track payments linked to reservations.
-- Multilingual **Payment Receipts** (English/Indonesian).
-- Upload proof of payment (PDF/Image) directly to Google Drive.
-- Status tracking (Deposit, Full Payment).
-
-### 4. Supply Chain (Supplier CL)
-- Manage Supplier Confirmation Letters.
-- Dedicated **Supplier Database** (Google Sheet `supplier`).
-- Track Vendor, Hotel, Stay Nights (Auto-calculated), and Deal Rates.
-- Upload Supplier CLs to Google Drive.
-
-### 5. Nusuk Agreement
-- Manage Nusuk contracts and agreements.
-- Generate and track Agreement Numbers.
-
----
-
-## 🛠️ Installation & Setup
-
-### Prerequisites
-- Node.js (v16 or higher)
-- npm (Node Package Manager)
-- A Google Cloud Service Account (JSON key) with access to Sheets and Drive APIs.
-
-### 1. Backend Setup
-
-Navigate to the backend directory:
-```bash
-cd vauza-hotel-backend
-npm install
-```
-
-**Environment Variables (`.env`)**:
-Create a `.env` file in `vauza-hotel-backend/` with the following keys:
-```env
-PORT=3000
-JWT_SECRET=your_jwt_secret_key
-GOOGLE_SHEET_ID=your_google_sheet_id
-GOOGLE_CLIENT_ID=your_oauth_client_id
-GOOGLE_CLIENT_SECRET=your_oauth_client_secret
-GOOGLE_REFRESH_TOKEN=your_oauth_refresh_token
-```
-*Note: Ensure `credentials/google-service-account.json` is present for direct Sheet access.*
-
-**Run the Server**:
-```bash
-npm start
-```
-
-### 2. Frontend Setup
-
-Navigate to the frontend directory:
-```bash
-cd vauza-hotel-frontend
-npm install
-```
-
-**Run the Application**:
-```bash
-npm run dev
-```
-Access the app at `http://localhost:5173`.
-
----
-
-## 📡 API Documentation (Backend)
-
-The backend provides several key endpoints managed by Express Routers:
-
-| Module | Route | Methods | Description |
-| :--- | :--- | :--- | :--- |
-| **Auth** | `/auth` | `POST` | User Login & Token Generation |
-| **Reservations** | `/reservations` | `GET, POST, PUT, DELETE` | Manage Booking Data |
-| **Payments** | `/payments` | `GET, POST, PATCH` | Handle Payments & Uploads |
-| **Supply** | `/supply` | `GET, POST, PUT, DELETE` | Supplier CL Management |
-| **Clients** | `/clients` | `GET` | List Clients |
-| **Hotels** | `/hotels` | `GET` | List Hotels |
-
-### Google Drive Integration
-The system uses `googleapis` to manage file uploads.
-- **Token Refresh**: Uses `GOOGLE_REFRESH_TOKEN` to maintain long-term access without manual re-login.
-- **Service**: `server/services/googleDrive.js` handles the OAuth2 flow and file upload logic.
-
----
-
-## 📊 Database Schema (Google Sheets)
-
-The project uses Google Sheets as a relational database substitute. Key Data Models:
-
-**Supplier Sheet (`supplier!A:R`)**:
-- **A**: Vendor
-- **B**: No RSV
-- **C**: ID Hotel
-- **D**: Check In
-- **E**: Check Out
-- **F**: Stay Nights
-- **P**: Total Amount
-- **Q**: Link URL (File)
-- **R**: Status (active/delete)
-
-**Payments Sheet**:
-- Tracks Client ID, Amount, Payment Date, Proof URL, and Status.
+## 🔐 Security & Permissions
+- **Authentication:** All routes are protected via JWT Middleware.
+- **Role Base:** (Future Roadmap) Admin vs Staff access.
+- **Data Safety:** Soft Delete implementation prevents accidental permanent data loss.
 
 ---
 
 ## 📝 License
-Proprietary software developed for Vauza Hotel POS.
+Proprietary software developed for **Vauza Tamma Abadi**. Unauthorized distribution is prohibited.
