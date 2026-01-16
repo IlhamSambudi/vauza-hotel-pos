@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Eye, EyeOff, Trash2 } from 'lucide-react';
+import React from 'react';
+import { Eye, EyeOff } from 'lucide-react';
 
 const RecentTable = ({
     title,
@@ -12,26 +12,24 @@ const RecentTable = ({
     emptyMessage = "No Data Available"
 }) => {
 
-    // Filter out deleted items if showDeleted is false
-    // Assuming 'tag_status' is the field for deletion status based on usage in Dashboard
     const displayData = showDeleted
         ? data
         : data.filter(item => item.tag_status !== 'delete');
 
     return (
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col h-full">
-            <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
-                <h3 className="font-bold text-textMain text-lg tracking-tight">{title}</h3>
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden flex flex-col h-full hover:shadow-md transition-shadow">
+            <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
+                <h3 className="font-black text-slate-800 text-lg tracking-tight">{title}</h3>
 
                 {hasStatusToggle && onToggleDelete && (
                     <button
                         onClick={onToggleDelete}
-                        className={`flex items-center gap-2 text-xs font-bold px-3 py-1.5 rounded-lg transition-colors
+                        className={`flex items-center gap-2 text-[10px] font-bold px-3 py-1.5 rounded-full transition-colors uppercase tracking-wide
                         ${showDeleted
-                                ? 'bg-red-50 text-red-600 hover:bg-red-100'
-                                : 'bg-gray-50 text-textSub hover:text-textMain hover:bg-gray-100'}`}
+                                ? 'bg-indigo-50 text-indigo-600 hover:bg-indigo-100'
+                                : 'bg-slate-50 text-slate-500 hover:text-slate-700 hover:bg-slate-100 border border-slate-200'}`}
                     >
-                        {showDeleted ? <EyeOff size={14} /> : <Eye size={14} />}
+                        {showDeleted ? <EyeOff size={12} /> : <Eye size={12} />}
                         <span>{showDeleted ? 'Hide Deleted' : 'Show Deleted'}</span>
                     </button>
                 )}
@@ -39,21 +37,21 @@ const RecentTable = ({
 
             <div className="overflow-x-auto flex-1">
                 <table className="w-full text-sm text-left">
-                    <thead className="text-xs text-textSub uppercase bg-gray-50/50 font-bold tracking-wider">
+                    <thead className="bg-slate-50/50 border-b border-slate-100">
                         <tr>
                             {headers.map((header, index) => (
-                                <th key={index} className={`px-6 py-4 ${index === headers.length - 1 ? 'text-right' : ''}`}>
+                                <th key={index} className={`px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider ${index === headers.length - 1 ? 'text-right' : ''}`}>
                                     {header}
                                 </th>
                             ))}
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-50">
+                    <tbody className="divide-y divide-slate-50">
                         {displayData.length > 0 ? (
                             displayData.map((item, index) => renderRow(item, index))
                         ) : (
                             <tr>
-                                <td colSpan={headers.length} className="px-6 py-8 text-center text-textSub italic font-medium">
+                                <td colSpan={headers.length} className="px-6 py-8 text-center text-slate-400 italic font-medium text-xs">
                                     {emptyMessage}
                                 </td>
                             </tr>
@@ -63,9 +61,9 @@ const RecentTable = ({
             </div>
 
             {displayData.length > 0 && (
-                <div className="px-6 py-4 border-t border-gray-50 bg-gray-50/30 text-center">
-                    <button className="text-xs font-bold text-primary hover:text-primaryHover transition-colors uppercase tracking-wide">
-                        View All {title.replace('Recent ', '')}
+                <div className="px-6 py-4 border-t border-slate-50 bg-slate-50/30 text-center">
+                    <button className="text-[10px] font-bold text-indigo-500 hover:text-indigo-600 transition-colors uppercase tracking-widest flex items-center justify-center gap-1 mx-auto">
+                        View All {title.replace('Recent ', '')} &rarr;
                     </button>
                 </div>
             )}

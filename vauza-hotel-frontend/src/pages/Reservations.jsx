@@ -13,22 +13,22 @@ import Tooltip from '../components/Tooltip';
 import { Edit2, Printer, Trash2, Eye, EyeOff, Plus, Calendar, User, Building, CreditCard } from 'lucide-react';
 
 const StatusBadge = ({ status }) => {
-    if (status === 'new') return <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700 uppercase tracking-wide">NEW</span>;
-    if (status === 'edited') return <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700 uppercase tracking-wide">EDITED</span>;
-    if (status === 'delete') return <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-red-100 text-red-600 uppercase tracking-wide">DELETED</span>;
+    if (status === 'new') return <span className="px-3 py-1 rounded-md text-[10px] font-bold bg-emerald-50 text-emerald-600 border border-emerald-100/50 uppercase tracking-wider shadow-sm shadow-emerald-100/50">NEW</span>;
+    if (status === 'edited') return <span className="px-3 py-1 rounded-md text-[10px] font-bold bg-blue-50 text-blue-600 border border-blue-100/50 uppercase tracking-wider shadow-sm shadow-blue-100/50">EDITED</span>;
+    if (status === 'delete') return <span className="px-3 py-1 rounded-md text-[10px] font-bold bg-rose-50 text-rose-600 border border-rose-100/50 uppercase tracking-wider shadow-sm shadow-rose-100/50">DELETED</span>;
     return null;
 };
 
 const BookingBadge = ({ status }) => {
     const styles = {
-        'Definite': 'bg-emerald-100 text-emerald-700',
-        'Tentative': 'bg-red-100 text-red-600',
-        'Amend': 'bg-purple-100 text-purple-700',
-        'Upgraded': 'bg-blue-100 text-blue-700',
-        'default': 'bg-gray-100 text-gray-600'
+        'Definite': 'bg-emerald-50 text-emerald-600 border-emerald-100',
+        'Tentative': 'bg-rose-50 text-rose-600 border-rose-100',
+        'Amend': 'bg-violet-50 text-violet-600 border-violet-100',
+        'Upgraded': 'bg-blue-50 text-blue-600 border-blue-100',
+        'default': 'bg-slate-50 text-slate-600 border-slate-100'
     };
     return (
-        <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide ${styles[status] || styles.default}`}>
+        <span className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border ${styles[status] || styles.default} shadow-sm`}>
             {status}
         </span>
     );
@@ -36,11 +36,11 @@ const BookingBadge = ({ status }) => {
 
 const PaymentBadge = ({ status }) => {
     const styles = {
-        'unpaid': 'bg-red-100 text-red-600',
-        'dp_30': 'bg-orange-100 text-orange-700',
-        'partial': 'bg-yellow-100 text-yellow-700',
-        'full_payment': 'bg-emerald-100 text-emerald-700',
-        'default': 'bg-gray-100 text-gray-600'
+        'unpaid': 'bg-rose-50 text-rose-600 border-rose-100',
+        'dp_30': 'bg-orange-50 text-orange-600 border-orange-100',
+        'partial': 'bg-amber-50 text-amber-600 border-amber-100',
+        'full_payment': 'bg-emerald-50 text-emerald-600 border-emerald-100',
+        'default': 'bg-slate-50 text-slate-600 border-slate-100'
     };
     const map = {
         'unpaid': 'UNPAID',
@@ -49,7 +49,7 @@ const PaymentBadge = ({ status }) => {
         'full_payment': 'FULL PAYMENT'
     };
     return (
-        <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide ${styles[status] || styles.default}`}>
+        <span className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border ${styles[status] || styles.default} shadow-sm`}>
             {map[status] || status}
         </span>
     );
@@ -133,8 +133,8 @@ export default function Reservations() {
 
 
 
-    const labelClass = "text-xs font-semibold text-textSub mb-2 block uppercase tracking-wide ml-1";
-    const inputClass = "w-full bg-white border border-gray-200 rounded-lg px-4 py-3 text-textMain focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all placeholder-gray-400 font-medium";
+    const labelClass = "text-[11px] font-bold text-slate-500 mb-2 block uppercase tracking-wider ml-1";
+    const inputClass = "w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3.5 text-slate-700 text-sm focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all placeholder-slate-400 font-medium hover:bg-white hover:border-slate-300";
 
     // Integrate useTable
     const {

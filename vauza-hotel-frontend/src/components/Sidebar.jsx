@@ -16,32 +16,34 @@ const menu = [
 export default function Sidebar() {
     return (
         <aside className="w-64 shrink-0 px-4 py-8 h-screen sticky top-0 flex flex-col bg-neu border-r border-gray-100">
-            <div className="px-6 mb-12 flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primaryHover flex items-center justify-center text-white shadow-lg shadow-primary/30">
-                    <ShieldCheck size={20} strokeWidth={2.5} />
+            <div className="px-6 mb-10 flex items-center gap-4">
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary via-indigo-500 to-indigo-600 flex items-center justify-center text-white shadow-xl shadow-primary/20 relative overflow-hidden group">
+                    <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <ShieldCheck size={24} strokeWidth={2.5} className="relative z-10" />
                 </div>
                 <div>
-                    <h1 className="text-xl font-bold text-textMain tracking-tight leading-none">Vauza<span className="text-primary">Hotel</span></h1>
-                    <span className="text-[10px] font-semibold text-textSub tracking-wider uppercase">Management</span>
+                    <h1 className="text-xl font-black text-slate-800 tracking-tight leading-none mb-1">Vauza<span className="text-primary">Hotel</span></h1>
+                    <span className="text-[10px] font-bold text-slate-400 tracking-[0.2em] uppercase">POS System</span>
                 </div>
             </div>
 
-            <nav className="flex flex-col gap-1.5 flex-1 px-3">
+            <nav className="flex flex-col gap-2 flex-1 px-4">
                 {menu.map((m) => (
                     <NavLink
                         key={m.path}
                         to={m.path}
                         className={({ isActive }) =>
-                            `px-5 py-3 rounded-full text-sm font-semibold transition-all duration-200 flex items-center gap-3.5 group relative overflow-hidden
+                            `px-5 py-3.5 rounded-xl text-sm font-semibold transition-all duration-300 flex items-center gap-4 group relative overflow-hidden
                             ${isActive
-                                ? "bg-primary text-white shadow-md shadow-primary/25"
-                                : "text-textSub hover:bg-white hover:text-primaryHover hover:shadow-sm"}`
+                                ? "bg-primary text-white shadow-lg shadow-primary/25 translate-x-1"
+                                : "text-slate-500 hover:bg-white hover:text-slate-800 hover:shadow-sm hover:translate-x-1"}`
                         }
                     >
                         {({ isActive }) => (
                             <>
-                                <m.icon size={20} strokeWidth={isActive ? 2.5 : 2} className={`transition-colors relative z-10 ${isActive ? "text-white" : "text-textSub group-hover:text-primaryHover"}`} />
+                                <m.icon size={20} strokeWidth={isActive ? 2.5 : 2} className={`transition-colors relative z-10 ${isActive ? "text-white" : "text-slate-400 group-hover:text-primary"}`} />
                                 <span className="relative z-10">{m.name}</span>
+                                {isActive && <div className="absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-white/20 rounded-l-full"></div>}
                             </>
                         )}
                     </NavLink>
@@ -54,9 +56,9 @@ export default function Sidebar() {
                             window.location.href = '/login';
                         }
                     }}
-                    className="px-5 py-3 rounded-full text-sm font-semibold transition-all duration-200 flex items-center gap-3.5 group relative overflow-hidden text-textSub hover:bg-red-50 hover:text-red-600 hover:shadow-sm mt-auto"
+                    className="px-5 py-3.5 rounded-xl text-sm font-semibold transition-all duration-300 flex items-center gap-4 group relative overflow-hidden text-slate-400 hover:bg-rose-50 hover:text-rose-600 hover:shadow-sm mt-auto"
                 >
-                    <LogOut size={20} strokeWidth={2} className="text-textSub group-hover:text-red-600 transition-colors" />
+                    <LogOut size={20} strokeWidth={2} className="text-slate-400 group-hover:text-rose-500 transition-colors" />
                     <span>Logout</span>
                 </button>
             </nav>

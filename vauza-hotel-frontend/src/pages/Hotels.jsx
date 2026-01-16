@@ -10,9 +10,9 @@ import Tooltip from '../components/Tooltip';
 import { Edit2, Trash2, Eye, EyeOff, MapPin } from 'lucide-react';
 
 const StatusBadge = ({ status }) => {
-    if (status === 'new') return <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700 uppercase tracking-wide">NEW</span>;
-    if (status === 'edited') return <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700 uppercase tracking-wide">EDITED</span>;
-    if (status === 'delete') return <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-red-100 text-red-600 uppercase tracking-wide">DELETED</span>;
+    if (status === 'new') return <span className="px-3 py-1 rounded-md text-[10px] font-bold bg-emerald-50 text-emerald-600 border border-emerald-100/50 uppercase tracking-wider shadow-sm shadow-emerald-100/50">NEW</span>;
+    if (status === 'edited') return <span className="px-3 py-1 rounded-md text-[10px] font-bold bg-blue-50 text-blue-600 border border-blue-100/50 uppercase tracking-wider shadow-sm shadow-blue-100/50">EDITED</span>;
+    if (status === 'delete') return <span className="px-3 py-1 rounded-md text-[10px] font-bold bg-rose-50 text-rose-600 border border-rose-100/50 uppercase tracking-wider shadow-sm shadow-rose-100/50">DELETED</span>;
     return null;
 };
 
@@ -88,17 +88,20 @@ export default function Hotels() {
     // Helper for rendering tables
     const renderTable = (title, list) => {
         return (
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex-1 min-w-[300px] p-6 flex flex-col">
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex-1 min-w-[300px] p-6 flex flex-col hover:shadow-md transition-shadow">
                 <div className="flex justify-between items-center mb-6">
-                    <h3 className="font-bold text-lg text-textMain tracking-tight">{title}</h3>
+                    <h3 className="font-black text-lg text-slate-800 tracking-tight flex items-center gap-2">
+                        <MapPin className="text-primary" size={20} />
+                        {title}
+                    </h3>
                 </div>
                 <div className="overflow-x-auto">
                     <table className="w-full min-w-max text-sm text-textMain border-collapse">
                         <thead>
                             <tr className="bg-white border-b border-gray-100">
-                                <th className="py-3 px-4 text-left font-semibold uppercase text-[10px] tracking-wider text-textSub">Hotel Name</th>
-                                <th className="py-3 px-4 text-left font-semibold uppercase text-[10px] tracking-wider w-[100px] text-textSub">Status</th>
-                                <th className="py-3 px-4 text-right font-semibold uppercase text-[10px] tracking-wider text-textSub">Action</th>
+                                <th className="py-3 px-4 text-left font-semibold uppercase text-[10px] tracking-wider text-slate-500">Hotel Name</th>
+                                <th className="py-3 px-4 text-left font-semibold uppercase text-[10px] tracking-wider w-[100px] text-slate-500">Status</th>
+                                <th className="py-3 px-4 text-right font-semibold uppercase text-[10px] tracking-wider text-slate-500">Action</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -106,30 +109,30 @@ export default function Hotels() {
                                 Array(5).fill(0).map((_, i) => (
                                     <tr key={i} className="border-b border-gray-50 last:border-0">
                                         <td colSpan="3" className="p-4">
-                                            <Skeleton className="h-10 w-full" />
+                                            <Skeleton className="h-10 w-full rounded-md" />
                                         </td>
                                     </tr>
                                 ))
                             ) : list.length === 0 ? (
-                                <tr><td className="p-8 text-textSub italic text-sm text-center" colSpan="3">No hotels found.</td></tr>
+                                <tr><td className="p-8 text-slate-400 italic text-sm text-center" colSpan="3">No hotels found.</td></tr>
                             ) : (
                                 list.map(h => {
                                     const isDeleted = h.tag_status === 'delete';
                                     return (
-                                        <tr key={h.id_hotel} className={`transition-all border-b border-gray-50 last:border-0 ${isDeleted ? 'opacity-50 grayscale' : 'hover:bg-gray-50'}`}>
-                                            <td className="p-4 text-textMain font-bold">
+                                        <tr key={h.id_hotel} className={`transition-all border-b border-gray-50 last:border-0 group ${isDeleted ? 'opacity-50 grayscale' : 'hover:bg-slate-50/80'}`}>
+                                            <td className="p-4 text-slate-700 font-bold">
                                                 {h.nama_hotel}
                                             </td>
                                             <td className="p-4">
                                                 <StatusBadge status={h.tag_status} />
                                             </td>
-                                            <td className="p-4 text-right flex justify-end gap-2 items-center">
+                                            <td className="p-4 text-right flex justify-end gap-2 items-center opacity-0 group-hover:opacity-100 transition-all">
                                                 {!isDeleted && (
                                                     <>
                                                         <Tooltip text="Edit Hotel">
                                                             <button
                                                                 onClick={() => startEdit(h)}
-                                                                className="p-2 rounded-full text-blue-500 hover:bg-blue-50 transition-colors"
+                                                                className="p-2 rounded-full text-indigo-500 hover:bg-indigo-50 hover:text-indigo-600 transition-colors"
                                                             >
                                                                 <Edit2 size={16} />
                                                             </button>
@@ -147,14 +150,14 @@ export default function Hotels() {
                                                                         }
                                                                     }
                                                                 }}
-                                                                className="p-2 rounded-full text-red-500 hover:bg-red-50 transition-colors"
+                                                                className="p-2 rounded-full text-rose-500 hover:bg-rose-50 hover:text-rose-600 transition-colors"
                                                             >
                                                                 <Trash2 size={16} />
                                                             </button>
                                                         </Tooltip>
                                                     </>
                                                 )}
-                                                {isDeleted && <span className="text-xs text-textSub italic font-medium">Read Only</span>}
+                                                {isDeleted && <span className="text-xs text-slate-400 italic font-medium">Read Only</span>}
                                             </td>
                                         </tr>
                                     );
@@ -170,38 +173,38 @@ export default function Hotels() {
     return (
         <Layout title="Hotels">
 
-            <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 mb-8 max-w-4xl">
-                <h3 className="text-sm font-bold text-textSub mb-6 uppercase tracking-wider">
+            <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 mb-8 max-w-4xl animate-fade-in-up">
+                <h3 className="text-xs font-bold text-slate-500 mb-6 uppercase tracking-wider">
                     {editId ? 'Edit Hotel' : 'Add New Hotel'}
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6 items-end">
                     <div className="md:col-span-2">
-                        <label className="block text-[10px] font-bold text-textSub mb-2 uppercase tracking-wide ml-1">Hotel Name</label>
+                        <label className="block text-[10px] font-bold text-slate-500 mb-2 uppercase tracking-wide ml-1">Hotel Name</label>
                         <input
                             value={name}
                             onChange={e => setName(e.target.value)}
                             placeholder="Enter hotel name"
-                            className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-medium text-textMain placeholder-gray-400"
+                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3.5 focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all font-medium text-slate-700 placeholder-slate-400 hover:bg-white"
                         />
                     </div>
                     <div>
-                        <label className="block text-[10px] font-bold text-textSub mb-2 uppercase tracking-wide ml-1">City</label>
+                        <label className="block text-[10px] font-bold text-slate-500 mb-2 uppercase tracking-wide ml-1">City</label>
                         <div className="relative">
                             <select
                                 value={city}
                                 onChange={e => setCity(e.target.value)}
-                                className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 appearance-none focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-medium text-textMain"
+                                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3.5 appearance-none focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all font-medium text-slate-700 hover:bg-white"
                             >
                                 <option value="Makkah">Makkah</option>
                                 <option value="Madinah">Madinah</option>
                             </select>
-                            <MapPin className="absolute right-3 top-1/2 -translate-y-1/2 text-textSub pointer-events-none" size={16} />
+                            <MapPin className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={16} />
                         </div>
                     </div>
                     <div className="flex gap-2">
                         <Button
                             onClick={handleSubmit}
-                            className={`flex-1 rounded-full h-[46px] flex items-center justify-center shadow-lg shadow-primary/20 ${editId ? 'bg-amber-500 hover:bg-amber-600 text-white' : 'bg-primary hover:bg-primaryHover text-white'}`}
+                            className={`flex-1 rounded-xl h-[50px] flex items-center justify-center shadow-lg shadow-primary/20 transition-all ${editId ? 'bg-amber-500 hover:bg-amber-600 hover:shadow-amber-500/20 text-white' : 'bg-primary hover:bg-primaryHover hover:shadow-primary/30 text-white'}`}
                         >
                             {editId ? 'UPDATE' : 'ADD'}
                         </Button>
@@ -209,7 +212,7 @@ export default function Hotels() {
                             <Button
                                 variant="ghost"
                                 onClick={cancelEdit}
-                                className="h-[46px] px-4 font-bold text-gray-400 hover:text-textMain"
+                                className="h-[50px] px-4 font-bold text-slate-400 hover:text-slate-600"
                             >
                                 Cancel
                             </Button>
@@ -232,7 +235,7 @@ export default function Hotels() {
 
                 <button
                     onClick={() => setShowDeleted(!showDeleted)}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wide transition-all ${showDeleted ? 'bg-indigo-50 text-indigo-600' : 'bg-white text-textSub hover:bg-gray-50 border border-gray-200'}`}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wide transition-all ${showDeleted ? 'bg-indigo-50 text-indigo-600' : 'bg-white text-slate-500 hover:bg-slate-50 border border-slate-200'}`}
                 >
                     {showDeleted ? <><Eye size={14} /> Hide Deleted</> : <><EyeOff size={14} /> Show Deleted</>}
                 </button>

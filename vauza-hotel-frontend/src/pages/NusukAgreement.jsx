@@ -57,9 +57,8 @@ export default function NusukAgreement() {
             ]);
 
             const rsv = resReservations.data || [];
-            const nusuk = resNusuk.data || []; // Array of {nusuk_no, no_rsv, status}
+            const nusuk = resNusuk.data || [];
 
-            // Map nusuk data by no_rsv for easy access
             const nusukMap = {};
             nusuk.forEach(item => {
                 if (item.no_rsv) {
@@ -81,7 +80,6 @@ export default function NusukAgreement() {
     };
 
     const handleUpdate = async (no_rsv, field, value) => {
-        // Optimistic update locally
         setNusukData(prev => ({
             ...prev,
             [no_rsv]: {
@@ -89,8 +87,6 @@ export default function NusukAgreement() {
                 [field]: value
             }
         }));
-
-        // Trigger save (debounced or immediate? Immediate for simple use case, but handle status separately)
         saveChanges(no_rsv, field, value);
     };
 
@@ -98,7 +94,6 @@ export default function NusukAgreement() {
         setUpdating(prev => ({ ...prev, [no_rsv]: true }));
         try {
             const current = nusukData[no_rsv] || {};
-            // If changing field is 'status', use new value, else use current. Same for nusuk_no.
             const payload = {
                 no_rsv,
                 nusuk_no: field === 'nusuk_no' ? value : (current.nusuk_no || ''),
@@ -146,73 +141,71 @@ export default function NusukAgreement() {
 
                 <button
                     onClick={() => setShowDeleted(!showDeleted)}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wide transition-all ${showDeleted ? 'bg-indigo-50 text-indigo-600' : 'bg-white text-textSub hover:bg-gray-50 border border-gray-200'}`}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wide transition-all ${showDeleted ? 'bg-indigo-50 text-indigo-600' : 'bg-white text-slate-500 hover:bg-slate-50 border border-slate-200'}`}
                 >
                     {showDeleted ? <><Eye size={14} /> Hide Deleted</> : <><EyeOff size={14} /> Show Deleted</>}
                 </button>
             </div>
 
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col h-[calc(100vh-280px)]">
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden flex flex-col h-[calc(100vh-280px)]">
                 <div className="overflow-auto flex-1 custom-scrollbar">
                     <table className="w-full text-left text-sm">
-                        <thead className="sticky top-0 z-20 bg-white shadow-sm border-b border-gray-100">
+                        <thead className="sticky top-0 z-20 bg-slate-50/50 shadow-sm border-b border-slate-100 backdrop-blur-sm">
                             <tr>
-                                <th className="p-4 font-semibold text-gray-500 uppercase text-xs">RSV No</th>
-                                <th className="p-4 font-semibold text-gray-500 uppercase text-xs">Client</th>
-                                <th className="p-4 font-semibold text-gray-500 uppercase text-xs">Hotel</th>
-                                <th className="p-4 font-semibold text-gray-500 uppercase text-xs">Check In</th>
-                                <th className="p-4 font-semibold text-gray-500 uppercase text-xs">Check Out</th>
-                                <th className="p-4 font-semibold text-gray-500 uppercase text-xs w-48">Nusuk No</th>
-                                <th className="p-4 font-semibold text-gray-500 uppercase text-xs w-48">Status</th>
+                                <th className="p-4 font-bold text-slate-400 uppercase text-[10px] tracking-wider">RSV No</th>
+                                <th className="p-4 font-bold text-slate-400 uppercase text-[10px] tracking-wider">Client</th>
+                                <th className="p-4 font-bold text-slate-400 uppercase text-[10px] tracking-wider">Hotel</th>
+                                <th className="p-4 font-bold text-slate-400 uppercase text-[10px] tracking-wider">Check In</th>
+                                <th className="p-4 font-bold text-slate-400 uppercase text-[10px] tracking-wider">Check Out</th>
+                                <th className="p-4 font-bold text-slate-400 uppercase text-[10px] tracking-wider w-48">Nusuk No</th>
+                                <th className="p-4 font-bold text-slate-400 uppercase text-[10px] tracking-wider w-48">Status</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-50">
+                        <tbody className="divide-y divide-slate-50">
                             {loading ? (
                                 Array(5).fill(0).map((_, i) => (
                                     <tr key={i}>
                                         <td colSpan="7" className="p-8">
-                                            <Skeleton className="h-8 w-full" />
+                                            <Skeleton className="h-8 w-full rounded-md" />
                                         </td>
                                     </tr>
                                 ))
                             ) : processedReservations.map(r => {
                                 const isDeleted = r.tag_status === 'delete';
-                                // We use r.nusuk_status and r.nusuk_no from combined data, 
-                                // BUT input should update local state to reflect changes instantly.
-                                // It effectively works because handleUpdate updates nusukData -> useMemo -> combinedData -> re-render.
-                                // Just need to be careful with binding.
                                 const nData = nusukData[r.no_rsv] || { nusuk_no: '', status: 'blank' };
 
                                 const statusColor = {
-                                    'blank': 'bg-gray-100 text-gray-500',
-                                    'waiting approval': 'bg-purple-100 text-purple-700',
-                                    'approved': 'bg-green-100 text-green-700',
-                                    'rejected': 'bg-red-100 text-red-700',
-                                }[nData.status] || 'bg-gray-100';
+                                    'blank': 'bg-slate-100 text-slate-500 border-slate-200',
+                                    'waiting approval': 'bg-purple-50 text-purple-600 border-purple-100',
+                                    'approved': 'bg-emerald-50 text-emerald-600 border-emerald-100',
+                                    'rejected': 'bg-rose-50 text-rose-600 border-rose-100',
+                                }[nData.status] || 'bg-slate-100';
 
                                 return (
-                                    <tr key={r.no_rsv} className={`hover:bg-gray-50 transition-colors ${isDeleted ? 'opacity-50 grayscale' : ''}`}>
-                                        <td className="p-4 font-mono font-bold text-xs text-primary">{r.no_rsv}</td>
-                                        <td className="p-4 font-bold text-textMain">{r.nama_client}</td>
-                                        <td className="p-4 text-textSub text-xs uppercase font-medium">{r.nama_hotel}</td>
-                                        <td className="p-4 text-xs font-mono text-textMain">{formatDate(r.checkin)}</td>
-                                        <td className="p-4 text-xs font-mono text-textMain">{formatDate(r.checkout)}</td>
+                                    <tr key={r.no_rsv} className={`group hover:bg-slate-50/80 transition-colors ${isDeleted ? 'opacity-50 grayscale bg-slate-50' : ''}`}>
+                                        <td className="p-4">
+                                            <span className="font-mono text-[10px] font-bold text-primary bg-primary/10 px-2 py-1 rounded-md">
+                                                {r.no_rsv}
+                                            </span>
+                                        </td>
+                                        <td className="p-4 font-bold text-slate-700">{r.nama_client}</td>
+                                        <td className="p-4 text-slate-500 text-xs font-medium">{r.nama_hotel}</td>
+                                        <td className="p-4 text-xs font-mono font-medium text-slate-600">{formatDate(r.checkin)}</td>
+                                        <td className="p-4 text-xs font-mono font-medium text-slate-600">{formatDate(r.checkout)}</td>
                                         <td className="p-4">
                                             <input
                                                 type="text"
-                                                className="border border-gray-200 rounded-lg px-3 py-2 w-full text-xs font-bold focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all font-mono"
+                                                className="border border-slate-200 bg-white rounded-lg px-3 py-2 w-full text-xs font-bold text-slate-700 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all font-mono"
                                                 value={nData.nusuk_no || ''}
-                                                placeholder="Nusuk No"
+                                                placeholder="Enter Nusuk No"
                                                 onChange={(e) => handleUpdate(r.no_rsv, 'nusuk_no', e.target.value)}
                                                 disabled={isDeleted}
-                                            // Removed onBlur explicit save as we save on change via handleUpdate's debounce/immediate logic
-                                            // Actually logic says handleUpdate calls saveChanges immediately.
                                             />
                                         </td>
                                         <td className="p-4">
                                             <div className="relative">
                                                 <select
-                                                    className={`appearance-none border-0 rounded-full px-3 py-1.5 w-full text-[10px] font-bold uppercase cursor-pointer focus:ring-2 focus:ring-offset-1 focus:ring-primary/20 ${statusColor} text-center`}
+                                                    className={`appearance-none border rounded-lg px-3 py-2 w-full text-[10px] font-black uppercase cursor-pointer focus:ring-2 focus:ring-offset-1 focus:ring-primary/20 ${statusColor} text-center transition-all bg-transparent`}
                                                     value={nData.status || 'blank'}
                                                     onChange={(e) => {
                                                         handleUpdate(r.no_rsv, 'status', e.target.value);
@@ -225,8 +218,8 @@ export default function NusukAgreement() {
                                                     <option value="rejected">Rejected</option>
                                                 </select>
                                                 {updating[r.no_rsv] && (
-                                                    <div className="absolute top-1/2 -right-4 -translate-y-1/2">
-                                                        <Loader size={12} className="animate-spin text-primary" />
+                                                    <div className="absolute top-1/2 -right-5 -translate-y-1/2">
+                                                        <Loader size={14} className="animate-spin text-primary" />
                                                     </div>
                                                 )}
                                             </div>
