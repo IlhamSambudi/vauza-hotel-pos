@@ -15,11 +15,24 @@ export default function EditReservationModal({ data, onClose, onSave }) {
         room_quad_rate: data.room_quad_rate || 0,
         room_extra: data.room_extra || 0,
         room_extra_rate: data.room_extra_rate || 0,
-        meal: data.meal || ''
+        meal: data.meal || '',
+        note: data.note || '',
+        checkin: data.checkin || '',
+        checkout: data.checkout || ''
     });
 
     // Calculate dynamic totals
-    const staynight = data.staynight || 1; // Basic safeguard
+    const calculateStayNight = (inDate, outDate) => {
+        const d1 = new Date(inDate);
+        const d2 = new Date(outDate);
+        const diff = (d2 - d1) / (1000 * 60 * 60 * 24);
+        return diff > 0 ? diff : 0;
+    };
+
+    const staynight = (form.checkin && form.checkout)
+        ? calculateStayNight(form.checkin, form.checkout)
+        : (data.staynight || 1);
+
     const totalRoomAmount = (
         (parseInt(form.room_double || 0) * parseInt(form.room_double_rate || 0)) +
         (parseInt(form.room_triple || 0) * parseInt(form.room_triple_rate || 0)) +
@@ -66,6 +79,8 @@ export default function EditReservationModal({ data, onClose, onSave }) {
                                 >
                                     <option value="Tentative">Tentative</option>
                                     <option value="Definite">Definite</option>
+                                    <option value="Amend">Amend</option>
+                                    <option value="Upgraded">Upgraded</option>
                                 </select>
                             </div>
                         </div>
@@ -85,6 +100,28 @@ export default function EditReservationModal({ data, onClose, onSave }) {
                                 </select>
                                 <Wallet className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
                             </div>
+                        </div>
+                    </div>
+
+                    {/* Dates Section - NEW */}
+                    <div className="grid grid-cols-2 gap-4 bg-blue-50/50 p-4 rounded-xl border border-blue-100">
+                        <div>
+                            <label className={labelClass}>Checkin</label>
+                            <input
+                                type="date"
+                                className={inputClass}
+                                value={form.checkin}
+                                onChange={e => setForm({ ...form, checkin: e.target.value })}
+                            />
+                        </div>
+                        <div>
+                            <label className={labelClass}>Checkout</label>
+                            <input
+                                type="date"
+                                className={inputClass}
+                                value={form.checkout}
+                                onChange={e => setForm({ ...form, checkout: e.target.value })}
+                            />
                         </div>
                     </div>
 
@@ -181,6 +218,17 @@ export default function EditReservationModal({ data, onClose, onSave }) {
                             />
                             <DollarSign className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
                         </div>
+                    </div>
+
+                    {/* Note Section - NEW */}
+                    <div>
+                        <label className={labelClass}>Note</label>
+                        <textarea
+                            className={`${inputClass} min-h-[80px]`}
+                            value={form.note || ''}
+                            onChange={e => setForm({ ...form, note: e.target.value })}
+                            placeholder="Add note..."
+                        />
                     </div>
 
                     {/* Summary Box */}

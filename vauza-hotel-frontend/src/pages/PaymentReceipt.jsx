@@ -2,7 +2,7 @@ import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import api from "../services/api";
 import { formatDate } from "../utils/formatDate";
-import Logo from "../assets/logo.png";
+import Logo from "../assets/logo umroh 5.png";
 import Signature from "../assets/ttd_fina.png";
 
 export default function PaymentReceipt() {

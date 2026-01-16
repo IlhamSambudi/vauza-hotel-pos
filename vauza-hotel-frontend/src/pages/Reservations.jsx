@@ -23,6 +23,8 @@ const BookingBadge = ({ status }) => {
     const styles = {
         'Definite': 'bg-emerald-100 text-emerald-700',
         'Tentative': 'bg-red-100 text-red-600',
+        'Amend': 'bg-purple-100 text-purple-700',
+        'Upgraded': 'bg-blue-100 text-blue-700',
         'default': 'bg-gray-100 text-gray-600'
     };
     return (
@@ -317,6 +319,17 @@ export default function Reservations() {
                                 className={inputClass}
                                 value={form.deadline_payment}
                                 onChange={e => setForm({ ...form, deadline_payment: e.target.value })}
+                            />
+                        </div>
+
+                        {/* Add Note */}
+                        <div className="md:col-span-4">
+                            <label className={labelClass}>Add Note</label>
+                            <textarea
+                                className={`${inputClass} min-h-[80px]`}
+                                value={form.note || ''}
+                                onChange={e => setForm({ ...form, note: e.target.value })}
+                                placeholder="Additional information..."
                             />
                         </div>
 
