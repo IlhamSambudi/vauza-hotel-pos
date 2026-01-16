@@ -1,113 +1,183 @@
-# Vauza Hotel POS - User Documentation
+# Vauza Hotel POS - Complete System Documentation
 
-Documentation tutorial penggunaan web aplikasi Vauza Hotel POS.
+**Version:** 2.0 (Slate Design System)
+**Last Updated:** 2026-01-16
+**Status:** Operational
 
-## Daftar Isi
-1. [Input Client](#1-input-client)
-2. [Input Hotel](#2-input-hotel)
-3. [Add Order (Reservation)](#3-add-order-reservation)
-4. [Add Payment](#4-add-payment)
-5. [Monitoring Nusuk Agreement](#5-monitoring-nusuk-agreement)
-6. [Add CL Supplier](#6-add-cl-supplier)
-7. [Edit CL & Print CL](#7-edit-cl--print-cl)
-8. [Print Receipt](#8-print-receipt)
+This document provides a comprehensive guide to all features, pages, functions, and processes currently available in the Vauza Hotel POS system.
 
 ---
 
-### 1. Input Client
-**Menu:** `Clients`
-1. Klik menu **Clients** di sidebar sebelah kiri.
-2. Klik tombol **+ NEW CLIENT**.
-3. Isi form yang tersedia:
-   - **Nama Client**: Nama lengkap klien atau perusahaan.
-   - **No HP / Telp**: Nomor kontak yang bisa dihubungi.
-   - **Email**: Alamat email klien (opsional jika tidak ada).
-4. Klik tombol **CREATE CLIENT** untuk menyimpan.
-5. Client baru akan muncul di daftar tabel.
+## 1. Authentication
+**Page:** `Login.jsx`
 
-### 2. Input Hotel
-**Menu:** `Hotels`
-1. Klik menu **Hotels** di sidebar.
-2. Klik tombol **+ NEW HOTEL**.
-3. Isi detail hotel:
-   - **Nama Hotel**: Nama properti hotel.
-   - **Kota/Lokasi**: Lokasi hotel (Cth: Makkah, Madinah).
-4. Klik **CREATE HOTEL** untuk menyimpan.
-
-### 3. Add Order (Reservation)
-**Menu:** `Reservations`
-1. Klik menu **Reservations**.
-2. Klik tombol **+ NEW RESERVATION**.
-3. Lengkapi Form Reservasi:
-   - **Reservation ID**: Masukkan `No RSV` secara manual (unik).
-   - **Client**: Pilih client dari dropdown.
-   - **Hotel**: Pilih hotel dari dropdown.
-   - **Checkin & Checkout**: Pilih tanggal masuk dan keluar.
-   - **Rooms & Rates**:
-     - Masukkan jumlah kamar (`Qty`) dan harga per malam (`Rate`) untuk tipe kamar (Double, Triple, Quad, dll).
-   - **Meal Type**: Pilih tipe makanan (Breakfast Only, Full Board, dll).
-   - **Deadline Payment**: Tentukan tanggal jatuh tempo pembayaran.
-4. Klik **CREATE RESERVATION**. Reservasi akan tersimpan dengan status `New`.
-
-### 4. Add Payment
-Untuk menambahkan pembayaran pada reservasi yang sudah ada:
-
-**Menu:** `Reservations`
-1. Cari reservasi di tabel **Reservations**.
-2. Klik tombol **Edit** (ikon pensil) pada baris reservasi tersebut.
-3. Di dalam modal Edit, cari kolom input **Add Payment (SAR)**.
-4. Masukkan nominal pembayaran yang diterima.
-5. Anda juga bisa mengubah **Status Payment** menjadi `PARTIAL` atau `FULL PAYMENT`.
-6. Klik **SAVE CHANGES**.
-7. Nominal `Paid (SAR)` di tabel akan bertambah.
-
-### 5. Monitoring Nusuk Agreement
-Fitur ini digunakan untuk memonitor status agreement di sistem Nusuk.
-
-**Menu:** `Nusuk Agreement`
-1. Klik menu **Nusuk Agreement**.
-2. Anda akan melihat dashboard status agreement (Total, Active, Expired, Pending).
-3. Gunakan filter atau pencarian untuk menemukan agreement tertentu.
-4. Klik tombol **+ New Agreement** jika ingin mencatat agreement baru ke dalam sistem.
-
-### 6. Add CL Supplier
-**Menu:** `Supply Hotel` (atau Reservasi terkait supply)
-Fitur ini biasanya digunakan untuk mencatat pesanan ke pihak Supplier/Hotel (Vendor).
-
-1. Klik menu **Supply Hotel**.
-2. Klik **+ NEW SUPPLY**.
-3. Isi data supply:
-   - **Supplier**: Pilih atau input nama supplier.
-   - **Hotel**, **Check In/Out**, **Room Details**.
-   - **Buying Rate**: Harga beli dari supplier.
-4. Klik **SAVE**. Data ini penting untuk menghitung profit margin (Selisih harga jual di Reservasi vs harga beli di Supply).
-
-### 7. Edit CL & Print CL (Confirmation Letter)
-**Menu:** `Reservations`
-Confirmation Letter (CL) adalah dokumen bukti pemesanan untuk diberikan kepada Client atau Hotel.
-
-**Cara Edit CL:**
-1. Di menu **Reservations**, klik ikon **Edit** pada reservasi yang diinginkan.
-2. Pastikan semua data kamar dan tamu sudah benar.
-3. Klik **SAVE CHANGES**.
-
-**Cara Print CL:**
-1. Di tabel **Reservations**, klik ikon **Printer** (Print CL) pada baris reservasi.
-2. Halaman baru akan terbuka menampilkan format **Confirmation Letter**.
-3. Periksa tampilan.
-4. Klik tombol **PRINT PDF** di pojok kanan atas atau gunakan `Ctrl + P` / `Cmd + P`.
-5. Simpan sebagai PDF atau cetak ke printer.
-
-### 8. Print Receipt (Kwitansi Pembayaran)
-**Menu:** `Overview Order` atau akses langsung dari Reservasi (Tergantung implementasi custom Anda).
-
-*Jika melalui Overview Order:*
-1. Klik menu **Overview Order**.
-2. Cari nama Client.
-3. Klik tombol **Print Report**.
-4. Halaman ini akan menampilkan rekap semua pesanan client tersebut beserta status pembayarannya.
-5. Untuk mencetak kwitansi spesifik per pembayaran, biasanya dilakukan saat input payment atau melalui fitur invoice terpisah jika tersedia.
-   *(Catatan: Saat ini fitur Print Receipt sering digabungkan dengan Confirmation Letter atau Overview Report untuk rekap total tagihan).*
+*   **Process:**
+    *   User enters Username and Password.
+    *   System authenticates against the backend.
+    *   On success: Redirects to Dashboard.
+    *   On failure: Displays error message with "Shake" animation.
+*   **Design:**
+    *   Glassmorphism card effect with `slate-50` background.
+    *   Animated gradient logo.
+    *   Secure password toggle visibility.
 
 ---
-*Dokumen ini dibuat otomatis untuk referensi penggunaan sistem Vauza Hotel POS.*
+
+## 2. Dashboard
+**Page:** `Dashboard.jsx`
+
+*   **Features:**
+    *   **Welcome Card:** Personalized greeting with "Currency Mode" toggle (IDR/SAR).
+    *   **Smart Alerts:**
+        *   **Overdue Payments:** Highlights reservations past deadline (Red).
+        *   **Due Soon:** Highlights deadline within 4 days (Amber).
+        *   Auto-calculates days remaining and amount due.
+    *   **Statistics Stats:**
+        *   Total Clients, Partner Hotels, Active Reservations.
+        *   Nusuk Agreements, Supply Confirmation Letters.
+        *   **Revenue:** Toggles between IDR and SAR based on selection.
+    *   **Recent Activity Tables:**
+        *   Shows last 5 entries for Clients, Hotels, Reservations, and Payments.
+        *   Visual "Show Deleted" toggle to view soft-deleted records.
+
+---
+
+## 3. Master Data Management
+
+### Clients
+**Page:** `Clients.jsx`
+*   **Features:**
+    *   **View:** List all clients with modern badges.
+    *   **Create:** "New Client" modal (Name, Phone, Email, Status).
+    *   **Edit:** Modify client details inline.
+    *   **Soft Delete:** Mark clients as deleted (recoverable via "Show Deleted").
+    *   **Search/Filter:** Real-time filtered search.
+
+### Hotels
+**Page:** `Hotels.jsx`
+*   **Features:**
+    *   **View:** List all partner hotels with city badges.
+    *   **Create:** Input Name, City (Makkah/Madinah), Contact Info.
+    *   **Edit/Delete:** Update details or soft delete.
+
+---
+
+## 4. Reservations Management
+**Page:** `Reservations.jsx`
+
+### Core Workflow
+1.  **Create Reservation:**
+    *   Menu: `Reservations` > **+ New Reservation**
+    *   **Inputs:**
+        *   **Meta:** Reservation No, Client, Hotel, Meal Type.
+        *   **Dates:** Check-in / Check-out (Auto-calculates Stay Nights).
+        *   **Rooms:** Quantity x Rate (Double, Triple, Quad, Extra).
+        *   **Calculations:** System auto-sums `Total Amount`.
+        *   **Note:** Add internal notes for staff.
+    *   **Submit:** Saves to Google Sheet database.
+
+2.  **Edit Reservation:**
+    *   Click **Edit (Pencil)** icon.
+    *   **Modify Dates:** Changing dates triggers auto-recalculation of Stay Nights and Totals (if rates apply per night).
+    *   **Modify Status:**
+        *   **Amend:** Mark reservation as undergoing changes (Purple badge).
+        *   **Upgraded:** Mark as upgraded service (Blue badge).
+    *   **Modify Note:** Update special instructions.
+
+3.  **Status Workflow:**
+    *   `Tentative` -> `Definite` -> `Full Payment`.
+    *   **Visuals:** Color-coded pill badges for instant status recognition.
+
+---
+
+## 5. Supply Management
+**Page:** `Supply.jsx`
+
+*   **Purpose:** Track supplier costs and upload Confirmation Letters (CL) from vendors.
+*   **Features:**
+    *   **Create Supply CL:**
+        *   Link to Vendor and Reservation No.
+        *   **Cost Input:** Room Quantities x Buying Rates.
+        *   **Auto-Calc:** Total Cost Amount (SAR).
+        *   **Upload:** Attach PDF/Image of the official CL file.
+    *   **Visuals:**
+        *   Clean "Pill" form inputs.
+        *   Table view with "View File" execution.
+
+---
+
+## 6. Payment Processing
+**Page:** `Payments.jsx`
+
+*   **Workflow:**
+    1.  **Record Payment:**
+        *   Click **+ New Payment**.
+        *   Select Client and Reservation.
+        *   Input **Amount** (IDR or SAR).
+        *   **Proof:** Upload payment proof (Image/PDF).
+        *   **Status Tag:** New, Verified, etc.
+    2.  **Tracking:**
+        *   Table shows Date, Amount, Currency, and Status.
+        *   System updates the "Paid Amount" on the main Reservation record.
+    3.  **Receipt Generation:**
+        *   Click **Print Receipt** (Printer Icon) on a payment row.
+        *   Opens `PaymentReceipt.jsx`.
+
+---
+
+## 7. Operational Compliance (Nusuk)
+**Page:** `NusukAgreement.jsx`
+
+*   **Purpose:** Manage Ministry of Hajj & Umrah (Nusuk) compliance status for each reservation.
+*   **Features:**
+    *   **Auto-Sync:** Pulls all active reservations.
+    *   **Input:**
+        *   **Nusuk No:** Manual entry of the permit number.
+        *   **Status:** Dropdown (Blank, Waiting Approval, Approved, Rejected).
+    *   **Real-time Save:** Updates propagate instantly to the database.
+    *   **Visuals:** Color-coded status dropdowns.
+
+---
+
+## 8. Documentation & Printing
+
+### Confirmation Letter
+**Page:** `ConfirmationLetter.jsx`
+*   **Trigger:** Click "Print CL" on Reservation table.
+*   **Content:**
+    *   Official Company Header & Logo.
+    *   Guest Details, Hotel, Check-in/Out.
+    *   Room Configuration Table.
+    *   Terms & Conditions (legal text).
+    *   Manager Signature.
+*   **Format:** Optimized for A4 PDF printing.
+
+### Payment Receipt
+**Page:** `PaymentReceipt.jsx`
+*   **Trigger:** Click "Print Receipt" on Payment table.
+*   **Content:**
+    *   Official Receipt Header.
+    *   Amount Paid (IDR & SAR).
+    *   Bank Account Details.
+    *   Payment Status.
+    *   Signature.
+
+---
+
+## 9. Technical Specifications
+
+### Tech Stack
+*   **Frontend:** React (Vite), Tailwind CSS (Slate Theme), Lucide Icons.
+*   **Backend:** Node.js (Express).
+*   **Database:** Google Sheets (via Google API Service Account).
+
+### Global Functions
+*   **Soft Delete:** Records are flagged as `tag_status = 'delete'` rather than physically removed, allowing recovery view (`Show Deleted` toggle).
+*   **Auto-Calculation:** Frontend hooks automatically compute `(Rooms * Rates) * Nights` to minimize human error.
+*   **Responsive Design:** "Slate" design system ensures readability on Desktop and Tablet.
+
+### Design System (2025 Refreh)
+*   **Palette:** `Slate-50` (Backgrounds), `Slate-200` (Borders), `Primary` (Brand Color).
+*   **Typography:** `Montserrat` (Google Fonts).
+*   **Components:** Rounded-XL cards, Pill-shaped inputs, Glassmorphism headers.
+*   **Feedback:** Toast notifications for success/error actions.
