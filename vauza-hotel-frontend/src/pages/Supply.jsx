@@ -8,7 +8,7 @@ import useTable from '../hooks/useTable';
 import TableControls from '../components/TableControls';
 import Tooltip from '../components/Tooltip';
 import StatusBadge from '../components/StatusBadge';
-import { Plus, FileText, Building, ExternalLink, Edit2, Trash2, Eye, EyeOff, Calendar, List, DollarSign } from 'lucide-react';
+import { Plus, FileText, Building, ExternalLink, Edit2, Trash2, Eye, EyeOff, Calendar, List, DollarSign, ChevronDown } from 'lucide-react';
 
 export default function Supply() {
     const [supplies, setSupplies] = useState([]);
@@ -206,7 +206,18 @@ export default function Supply() {
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                         <div className="md:col-span-1">
                             <label className={labelClass}>Vendor</label>
-                            <input className={inputClass} value={form.vendor} onChange={e => setForm({ ...form, vendor: e.target.value })} placeholder="Vendor Name" />
+                            <div className="relative">
+                                <select
+                                    className={`${inputClass} appearance-none cursor-pointer`}
+                                    value={form.vendor}
+                                    onChange={e => setForm({ ...form, vendor: e.target.value })}
+                                >
+                                    <option value="">Select Vendor</option>
+                                    <option value="Al Ekhlas Amro">Al Ekhlas Amro</option>
+                                    <option value="Serb Business Holding">Serb Business Holding</option>
+                                </select>
+                                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={16} />
+                            </div>
                         </div>
                         <div className="md:col-span-1">
                             <label className={labelClass}>RSV No</label>
