@@ -12,7 +12,8 @@ export default function App() {
   const isCLPage = location.pathname.startsWith('/cl/');
   const isReceiptPage = location.pathname.startsWith('/payment-receipt/');
   const isOverviewPrintPage = location.pathname.startsWith('/overview-order/print/');
-  const showSidebar = !isLoginPage && !isCLPage && !isReceiptPage && !isOverviewPrintPage;
+  const isVoucherPage = location.pathname.startsWith('/voucher/');
+  const showSidebar = !isLoginPage && !isCLPage && !isReceiptPage && !isOverviewPrintPage && !isVoucherPage;
 
   return (
     <div className="flex min-h-screen bg-bgMain text-textMain font-sans">

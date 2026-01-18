@@ -15,7 +15,7 @@ const menu = [
 
 export default function Sidebar() {
     return (
-        <aside className="w-64 shrink-0 px-4 py-8 h-screen sticky top-0 flex flex-col bg-neu border-r border-gray-100">
+        <aside className="w-64 shrink-0 px-4 py-8 h-screen sticky top-0 flex flex-col bg-neu border-r border-gray-100 print:hidden">
             <div className="px-6 mb-10 flex items-center gap-4">
                 <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary via-indigo-500 to-indigo-600 flex items-center justify-center text-white shadow-xl shadow-primary/20 relative overflow-hidden group">
                     <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>

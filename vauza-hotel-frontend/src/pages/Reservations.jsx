@@ -10,7 +10,7 @@ import Skeleton from '../components/Skeleton';
 import useTable from '../hooks/useTable';
 import TableControls from '../components/TableControls';
 import Tooltip from '../components/Tooltip';
-import { Edit2, Printer, Trash2, Eye, EyeOff, Plus, Calendar, User, Building, CreditCard } from 'lucide-react';
+import { Edit2, Printer, Trash2, Eye, EyeOff, Plus, Calendar, User, Building, CreditCard, FileText } from 'lucide-react';
 
 const StatusBadge = ({ status }) => {
     if (status === 'new') return <span className="px-3 py-1 rounded-md text-[10px] font-bold bg-emerald-50 text-emerald-600 border border-emerald-100/50 uppercase tracking-wider shadow-sm shadow-emerald-100/50">NEW</span>;
@@ -461,12 +461,20 @@ export default function Reservations() {
                                                                 <Edit2 size={16} strokeWidth={2} />
                                                             </button>
                                                         </Tooltip>
-                                                        <Tooltip text="Print">
+                                                        <Tooltip text="Print CL">
                                                             <button
                                                                 onClick={() => window.open(`/cl/${r.no_rsv}`, '_blank')}
                                                                 className="p-2 rounded-full text-gray-600 hover:bg-gray-100 transition-colors"
                                                             >
                                                                 <Printer size={16} strokeWidth={2} />
+                                                            </button>
+                                                        </Tooltip>
+                                                        <Tooltip text="Print Voucher">
+                                                            <button
+                                                                onClick={() => window.open(`/voucher/${r.no_rsv}`, '_blank')}
+                                                                className="p-2 rounded-full text-indigo-600 hover:bg-indigo-100 transition-colors"
+                                                            >
+                                                                <FileText size={16} strokeWidth={2} />
                                                             </button>
                                                         </Tooltip>
                                                         <Tooltip text="Delete">
@@ -490,13 +498,15 @@ export default function Reservations() {
                 </div>
             </div>
 
-            {editData && (
-                <EditModal
-                    data={editData}
-                    onClose={() => setEditData(null)}
-                    onSave={saveEdit}
-                />
-            )}
-        </Layout>
+            {
+                editData && (
+                    <EditModal
+                        data={editData}
+                        onClose={() => setEditData(null)}
+                        onSave={saveEdit}
+                    />
+                )
+            }
+        </Layout >
     );
 }
