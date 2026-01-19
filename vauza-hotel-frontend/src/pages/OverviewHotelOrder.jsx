@@ -8,7 +8,8 @@ export default function OverviewHotelOrder() {
 
     useEffect(() => {
         api.get('/reservations').then(res => {
-            const reservations = res.data;
+            const allReservations = res.data;
+            const reservations = allReservations.filter(r => r.tag_status !== 'delete' && r.tag_status !== 'DELETE');
 
             // Group by Client
             const groups = {};

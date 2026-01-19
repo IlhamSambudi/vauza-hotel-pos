@@ -13,8 +13,8 @@ export default function OverviewClientPrint() {
     useEffect(() => {
         api.get('/reservations').then(res => {
             const allRes = res.data;
-            // Filter by client ID
-            const clientRes = allRes.filter(r => String(r.id_client) === String(id_client));
+            // Filter by client ID and exclude DELETE status
+            const clientRes = allRes.filter(r => String(r.id_client) === String(id_client) && r.tag_status !== 'delete' && r.tag_status !== 'DELETE');
 
             // Sort by checkin date descending or ascending? Usually ascending for order history.
             // Sort by checkin date: Earliest to Latest (Ascending)
