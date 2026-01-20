@@ -91,6 +91,7 @@ export default function OverviewClientPrint() {
                                 <th className="p-2 border border-black w-16 text-center">Deadline</th>
                                 <th className="p-2 border border-black text-right w-20">Total</th>
                                 <th className="p-2 border border-black text-right w-20">Paid</th>
+                                <th className="p-2 border border-black w-20 text-center">Pay Status</th>
                             </tr>
                         </thead>
                         <tbody className="text-black">
@@ -101,6 +102,16 @@ export default function OverviewClientPrint() {
                                 if (Number(r.room_triple) > 0) details.push({ type: 'Trp', qty: r.room_triple, rate: r.room_triple_rate });
                                 if (Number(r.room_quad) > 0) details.push({ type: 'Quad', qty: r.room_quad, rate: r.room_quad_rate });
                                 if (Number(r.room_extra) > 0) details.push({ type: 'Ext', qty: r.room_extra, rate: r.room_extra_rate });
+
+                                const payMap = {
+                                    'unpaid': 'UNPAID',
+                                    'dp_30': 'DP 30%',
+                                    'partial': 'PARTIAL',
+                                    'full_payment': 'FULL PAYMENT'
+                                };
+                                const payLabel = payMap[r.status_payment] || r.status_payment;
+                                const isUnpaid = r.status_payment === 'unpaid';
+                                const isFullPayment = r.status_payment === 'full_payment';
 
                                 return (
                                     <tr key={r.no_rsv}>
@@ -119,10 +130,13 @@ export default function OverviewClientPrint() {
                                             {details.length === 0 && '-'}
                                         </td>
                                         <td className="p-2 border border-black align-top">{r.meal}</td>
-                                        <td className="p-2 border border-black text-center align-top font-bold text-[9px] uppercase">{r.status_booking}</td>
+                                        <td className={`p-2 border border-black text-center align-top font-bold text-[9px] uppercase ${(r.status_booking === 'CANCEL' || r.status_booking === 'Cancel') ? 'text-red-600' : ''}`}>{r.status_booking}</td>
                                         <td className="p-2 border border-black text-center align-top text-red-600 font-medium">{formatDate(r.deadline_payment)}</td>
                                         <td className="p-2 border border-black text-right font-mono font-bold align-top">{Number(r.total_amount).toLocaleString()}</td>
                                         <td className="p-2 border border-black text-right font-mono align-top">{Number(r.paid_amount).toLocaleString()}</td>
+                                        <td className={`p-2 border border-black text-center align-top font-bold text-[9px] uppercase ${isUnpaid ? 'text-red-600' : isFullPayment ? 'text-green-600' : ''}`}>
+                                            {payLabel}
+                                        </td>
                                     </tr>
                                 );
                             })}

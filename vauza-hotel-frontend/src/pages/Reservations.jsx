@@ -22,9 +22,11 @@ const StatusBadge = ({ status }) => {
 const BookingBadge = ({ status }) => {
     const styles = {
         'Definite': 'bg-emerald-50 text-emerald-600 border-emerald-100',
-        'Tentative': 'bg-rose-50 text-rose-600 border-rose-100',
+        'Tentative': 'bg-amber-50 text-amber-600 border-amber-100',
         'Amend': 'bg-violet-50 text-violet-600 border-violet-100',
         'Upgraded': 'bg-blue-50 text-blue-600 border-blue-100',
+        'CANCEL': 'bg-red-50 text-red-600 border-red-100',
+        'Cancel': 'bg-red-50 text-red-600 border-red-100',
         'default': 'bg-slate-50 text-slate-600 border-slate-100'
     };
     return (

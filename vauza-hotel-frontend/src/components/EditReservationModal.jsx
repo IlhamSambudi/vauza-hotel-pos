@@ -81,6 +81,7 @@ export default function EditReservationModal({ data, onClose, onSave }) {
                                     <option value="Definite">Definite</option>
                                     <option value="Amend">Amend</option>
                                     <option value="Upgraded">Upgraded</option>
+                                    <option value="CANCEL">Cancel</option>
                                 </select>
                             </div>
                         </div>

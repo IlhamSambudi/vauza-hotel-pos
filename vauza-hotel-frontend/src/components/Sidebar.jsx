@@ -23,7 +23,7 @@ export default function Sidebar() {
                 </div>
                 <div>
                     <h1 className="text-xl font-black text-slate-800 tracking-tight leading-none mb-1">Vauza<span className="text-primary">Hotel</span></h1>
-                    <span className="text-[10px] font-bold text-slate-400 tracking-[0.2em] uppercase">POS System</span>
+                    <span className="text-[10px] font-bold text-slate-400 tracking-[0.2em] uppercase">Management</span>
                 </div>
             </div>
 

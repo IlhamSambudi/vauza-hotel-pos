@@ -23,6 +23,15 @@ export default function ConfirmationLetter() {
         <div className="bg-white text-black min-h-screen p-10 print:p-0 print:bg-white print:min-h-0 print:h-auto print:overflow-visible">
             <div className="max-w-[800px] mx-auto text-sm leading-relaxed">
 
+                {/* CANCELED WATERMARK */}
+                {(data.status_booking === 'CANCEL' || data.status_booking === 'Cancel') && (
+                    <div className="fixed inset-0 flex items-center justify-center pointer-events-none z-50 print:flex">
+                        <p className="text-[10rem] font-black text-red-500/20 rotate-45 border-4 border-red-500/20 p-10 rounded-3xl uppercase">
+                            CANCELED
+                        </p>
+                    </div>
+                )}
+
                 {/* PRINT BUTTON */}
                 <div className="mb-6 print:hidden flex justify-end">
                     <button
