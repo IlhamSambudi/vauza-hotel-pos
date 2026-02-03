@@ -181,6 +181,8 @@ export default function NusukAgreement() {
                                     'rejected': 'bg-rose-50 text-rose-600 border-rose-100',
                                 }[nData.status] || 'bg-slate-100';
 
+                                const isCancelled = r.status_booking === 'CANCEL' || r.status_booking === 'Cancel';
+
                                 return (
                                     <tr key={r.no_rsv} className={`group hover:bg-slate-50/80 transition-colors ${isDeleted ? 'opacity-50 grayscale bg-slate-50' : ''}`}>
                                         <td className="p-4">
@@ -199,7 +201,7 @@ export default function NusukAgreement() {
                                                 value={nData.nusuk_no || ''}
                                                 placeholder="Enter Nusuk No"
                                                 onChange={(e) => handleUpdate(r.no_rsv, 'nusuk_no', e.target.value)}
-                                                disabled={isDeleted}
+                                                disabled={isDeleted || isCancelled}
                                             />
                                         </td>
                                         <td className="p-4">
@@ -210,7 +212,7 @@ export default function NusukAgreement() {
                                                     onChange={(e) => {
                                                         handleUpdate(r.no_rsv, 'status', e.target.value);
                                                     }}
-                                                    disabled={isDeleted}
+                                                    disabled={isDeleted || isCancelled}
                                                 >
                                                     <option value="blank">Blank</option>
                                                     <option value="waiting approval">Waiting</option>

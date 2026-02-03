@@ -215,6 +215,7 @@ export default function Supply() {
                                     <option value="">Select Vendor</option>
                                     <option value="Al Ekhlas Amro">Al Ekhlas Amro</option>
                                     <option value="Serb Business Holding">Serb Business Holding</option>
+                                    <option value="Maysan Int. Group">Maysan Int. Group</option>
                                 </select>
                                 <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={16} />
                             </div>
